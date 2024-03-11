@@ -4,4 +4,3 @@ It's main function currently is as a mercy tracker for the game RSL in a RSL foc
 
 It also provides some additional custom functionality I have been building such a move message/attachments with filters command.
 
--Sun

@@ -16,9 +16,6 @@ const { getUserId, getUsername } = require('../../../utils/functions/interaction
 
 async function resetMercyCommand(interaction = new CommandInteraction()) {
 
-	// Logging
-	let output;
-
 	try {
 
 		/**

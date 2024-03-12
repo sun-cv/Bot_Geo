@@ -14,9 +14,6 @@ const { getUserId } = require('../../../utils/functions/interactionIndex');
 
 async function mercyCommand(interaction = new CommandInteraction) {
 
-	// Logging
-
-
 	try {
 
 		/**

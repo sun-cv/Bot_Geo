@@ -138,9 +138,7 @@ async function moveCommand(interaction = new CommandInteraction()) {
 			if (DEBUG) console.log(`Deleting message ${message.id} from original channel...`);
 
 			await message.delete();
-			console.log('author', message.author.id, 'last', lastAuthorIdLog);
 			// Logging
-
 			if (message.author.id !== lastAuthorIdLog) {
 				output += `${message.author.username}`;
 				commandLog.output += ` ${formattedTime}\n`;

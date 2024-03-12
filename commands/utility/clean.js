@@ -28,13 +28,12 @@ async function cleanCommand(interaction = new CommandInteraction()) {
 			});
 
 		commandLog.status = 'success';
-		await output;
 		return;
 
 	}
 	catch (error) {
 
-		output = interaction.reply({ content: 'There was an error trying to delete messages. Make sure the messages are not older than 14 days.', ephemeral: true });
+		interaction.reply({ content: 'There was an error trying to delete messages. Make sure the messages are not older than 14 days.', ephemeral: true });
 
 		commandLog.status = 'failed';
 		commandLog.error = error;

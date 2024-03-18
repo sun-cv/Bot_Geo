@@ -33,6 +33,7 @@ async function logUserCommand(interaction, log) {
 	}
 
 	const time = await newTimestamp();
+	const hour = await newTimestamp('hour');
 	const timestamp = new Date().toISOString();
 
 	// Define entry
@@ -50,7 +51,7 @@ async function logUserCommand(interaction, log) {
 	await db.run('UPDATE user SET command_count = command_count + 1, last_command = ? WHERE user_id = ?', command, userId);
 
 	// Log
-	console.log(`${username} used ${command}`);
+	console.log(`${hour}: ${username} used ${command}`);
 
 
 }

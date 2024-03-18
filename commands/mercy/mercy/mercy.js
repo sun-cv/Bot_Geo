@@ -92,7 +92,7 @@ async function mercyCommand(interaction = new CommandInteraction) {
 		}
 
 		// Send output if share mercy true
-		await interaction.reply({ content: output, fetchReply: shareMercy, ephemeral: !shareMercy })
+		interaction.reply({ content: output, fetchReply: shareMercy, ephemeral: !shareMercy })
 			.then(message => {
 				if (shareMercy) {
 					return new Promise((resolve, reject) => {
@@ -153,4 +153,8 @@ module.exports = {
 	},
 	execute: mercyCommand,
 	command: true,
+	maintenance: false,
+	cooldownCount: 0,
+	subCommand: 'shareMercy',
+	subCooldownCount: 120,
 };

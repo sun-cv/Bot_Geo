@@ -66,6 +66,7 @@ async function goldenKappa(client) {
 			rollbackTransaction();
 		}
 		console.error('Error in goldenKappa:', error);
+		throw error;
 	}
 }
 

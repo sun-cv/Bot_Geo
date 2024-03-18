@@ -10,7 +10,7 @@ const toggle = true;
 
 async function shouldFilter(message) {
 	try {
-		// Test Channel
+
 		const gearAdvice = '1182460791098724492';
 		const filter = message.channelId === gearAdvice;
 		// Filter return

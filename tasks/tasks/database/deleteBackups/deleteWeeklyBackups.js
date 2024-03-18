@@ -6,7 +6,7 @@ const backupDir = 'D:/Projects/Bot_Geo/database/backup/day';
 // Function to delete backups older than 7 days
 function deleteWeeklyBackups() {
 	try {
-		// Get the current date
+	// Get the current date
 		const currentDate = new Date();
 
 		// Get the list of backup files
@@ -14,30 +14,27 @@ function deleteWeeklyBackups() {
 
 		// Iterate over each file
 		for (const file of files) {
-			// Get the full path of the file
-			const filePath = path.join(backupDir, file);
+		// Extract the date portion from the file name (e.g., 'backup_2024-03-10.db')
+			const dateString = file.match(/\d{4}-\d{2}-\d{2}/)[0];
+			const backupDate = new Date(dateString);
 
-			// Get the stats of the file
-			const stats = fs.statSync(filePath);
+			// Calculate the difference in days between the current date and the backup date
+			const diffDays = Math.floor((currentDate - backupDate) / (1000 * 60 * 60 * 24));
 
-			// Get the modification date of the file
-			const mtime = new Date(stats.mtime);
-
-			// Calculate the difference in days between the current date and the modification date
-			const diffDays = Math.floor((currentDate - mtime) / (1000 * 60 * 60 * 24 * 30));
-
-			// If the file is older than 7 days, delete it
-			if (diffDays > 30) {
+			// If the file is 30 days old or older, delete it
+			if (diffDays >= 30) {
+				const filePath = path.join(backupDir, file);
 				fs.unlinkSync(filePath);
 				console.log(`Deleted backup: ${filePath}`);
 			}
 		}
 	}
 	catch (error) {
-		console.log('Error detected in deleteWeeklyBackups');
+		console.log('Error detected in deleteDailyBackups:', error);
 		throw error;
 	}
 }
+
 
 // Schedule the deletion to run every 24 hours
 module.exports = {

@@ -4,10 +4,15 @@ const { transaction } = require('../../database/utils/constants/transactions/tra
 const { beginTransaction } = require('../../database/utils/functions/transactions/begin');
 const { commitTransaction } = require('../../database/utils/functions/transactions/commit');
 const { rollbackTransaction } = require('../../database/utils/functions/transactions/rollback');
+const { getUserId, getUsername } = require('../functions/interactionIndex');
 const { newTimestamp } = require('../functions/timeKeeping/newTimestamp');
 
 
-async function activateUpdateUser(userId, username) {
+async function activateUpdateUser(interaction) {
+
+	const userId = getUserId(interaction);
+	const username = getUsername(interaction);
+
 
 	await beginTransaction();
 

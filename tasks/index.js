@@ -6,6 +6,19 @@ const { beginTransaction, db, commitTransaction, rollbackTransaction } = require
  *
  */
 
+/**
+     * Community
+     */
+
+const goldenKappa = {
+	name: 'goldenKappa',
+	schedule: '0 0 * * *',
+	arguments: 'client',
+	description: 'Switches goldenKappa role to new user at midnight',
+	filepath: 'community/goldenKappa',
+	updated_at: '11:30 AM 3/9/2024',
+	created_at: '11:30 AM 3/9/2024',
+};
 
 /**
 * Database
@@ -69,28 +82,16 @@ const cleanLogs = {
 	updated_at: '11:30 AM 3/9/2024',
 	created_at: '11:30 AM 3/9/2024',
 };
-/**
-     * Community
-     */
 
-const goldenKappa = {
-	name: 'goldenKappa',
-	schedule: '0 0 * * *',
-	arguments: 'client',
-	description: 'Switches goldenKappa role to new user at midnight',
-	filepath: 'community/goldenKappa',
-	updated_at: '11:30 AM 3/9/2024',
-	created_at: '11:30 AM 3/9/2024',
-};
 
 const tasks = {
+	goldenKappa,
 	dailyBackup,
 	weeklyBackup,
 	monthlyBackup,
 	deleteDailyBackups,
 	deleteWeeklyBackups,
 	cleanLogs,
-	goldenKappa,
 };
 
 

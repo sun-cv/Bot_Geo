@@ -180,7 +180,7 @@ async function successCommand(interaction = new CommandInteraction()) {
 		const output = `You've pulled ${initialCount} ${identifierEmojis[shardNameForOutput]} shards to date <@${interaction.user.id}>.\n \nThe cumulative success chance of pulling a ${championType} from ${number} ${shardNameForOutput.replace('_', ' ')} shards is approximately ${totalSuccessChancePercent.toFixed(2)}%.`;
 
 		// Send the output
-		await interaction.reply({ content: output, fetchReply: shareSuccess, ephemeral: !shareSuccess })
+		interaction.reply({ content: output, fetchReply: shareSuccess, ephemeral: !shareSuccess })
 			.then(message => {
 				if (shareSuccess) {
 					return new Promise((resolve, reject) => {
@@ -248,8 +248,8 @@ module.exports = {
 				.setDescription('Is it a 2x event?')
 				.setRequired(false)
 				.addChoices(
-					{ name: 'yes', value: 'yes' },
-					{ name: 'no', value: 'no' },
+					{ name: 'true', value: 'yes' },
+					{ name: 'false', value: 'no' },
 				))
 		.addStringOption(option =>
 			option.setName('account')
@@ -272,4 +272,9 @@ module.exports = {
 	},
 	execute: successCommand,
 	command: true,
+	maintenance: false,
+	cooldownCount: 0,
+	subCommand: 'shareSuccess',
+	subCooldownCount: 120,
+
 };

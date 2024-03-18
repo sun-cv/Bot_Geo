@@ -93,12 +93,9 @@ async function pullCommand(interaction = new CommandInteraction()) {
 			// WRITE - If total pulls do not exceed mercy limit, proceed
 			await incrementUser(userId, userAccount, shard, count);
 
-			const output = await interaction.reply({ content: `<@${interaction.user.id}> pulled ${count} ${identifierEmojis[shard]}`, fetchReply: true });
-			await new Promise((resolve, reject) => {
-				setTimeout(() => {
-					output.delete().then(resolve).catch(reject);
-				}, 15000);
-			});
+			await interaction.reply({ content: `<@${interaction.user.id}> pulled ${count} ${identifierEmojis[shard]}`, fetchReply: true });
+
+			setTimeout(() => { interaction.deleteReply(); }, 15000);
 
 			// Update last active
 			await updateAccountLastActive(userId, userAccount);
@@ -165,4 +162,6 @@ module.exports = {
 	},
 	execute: pullCommand,
 	command: true,
+	maintenance: false,
+
 };

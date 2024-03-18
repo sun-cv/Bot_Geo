@@ -162,4 +162,5 @@ module.exports = {
 	},
 	execute: resetMercyCommand,
 	command: true,
+	maintenance: false,
 };

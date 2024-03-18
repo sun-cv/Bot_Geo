@@ -19,17 +19,19 @@ module.exports = {
 		// ensure exists
 		await activateUpdateUser(interaction);
 
-		if (interaction.isCommand() || interaction.isAutocomplete()) {
+		if (interaction.isChatInputCommand() || interaction.isAutocomplete()) {
 
 			const {
 				data = null,
+				moderator = false,
 				maintenance = false,
 				deferReply = false,
-				moderator = false,
 				cooldownCount = null,
 				subCommand = null,
 				subCooldownCount = null,
 			} = command;
+
+			const timestamp = await newTimestamp('hour');
 
 			// Defer logic
 			if (deferReply) {
@@ -42,6 +44,7 @@ module.exports = {
 			if (moderator) {
 				if (!member.roles.cache.some(role => role.name === 'Moderator')) {
 					await interaction.reply({ content: 'You do not have permission to use this command.', ephemeral: true });
+					console.log(`${timestamp}: ${member.user.username} was denied access to ${commandName}`);
 					return;
 				}
 			}
@@ -51,7 +54,7 @@ module.exports = {
 			if (!member.roles.cache.some(role => role.name === 'Moderator')) {
 				cooldown = await cooldownHandler(interaction, cooldownCommands);
 				if (cooldown) {
-					const timestamp = await newTimestamp('hour');
+
 					console.log(`${timestamp}: ${member.user.username} was cooled out`);
 				}
 			}
@@ -66,6 +69,9 @@ module.exports = {
 					}
 					if (interaction.isCommand()) {
 						await interactionErrorHandling(command.execute, interaction);
+					}
+					else {
+						await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 					}
 				}
 				catch (error) {

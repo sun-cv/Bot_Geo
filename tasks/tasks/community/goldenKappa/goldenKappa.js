@@ -1,11 +1,9 @@
 const { guildId } = require('../../../../config.json');
 const { newTimestamp } = require('../../../../utils/functions/timeKeeping/newTimestamp.js');
-const { beginTransaction, rollbackTransaction, commitTransaction, transaction, db } = require('../../../../database/utils/databaseIndex.js');
+const { db } = require('../../../../database/utils/databaseIndex.js');
 
 async function goldenKappa(client) {
 	try {
-		// WRITES begin transaction
-		await beginTransaction();
 
 		// Get Guild
 		const guild = client.guilds.cache.get(guildId);
@@ -58,13 +56,9 @@ async function goldenKappa(client) {
 			console.error('No eligible members found.');
 		}
 
-		// COMMIT
-		await commitTransaction();
+
 	}
 	catch (error) {
-		if (transaction) {
-			rollbackTransaction();
-		}
 		console.error('Error in goldenKappa:', error);
 		throw error;
 	}

@@ -1,4 +1,4 @@
-const { beginTransaction, db, commitTransaction, rollbackTransaction } = require('../database/utils/databaseIndex');
+const { db } = require('../database/utils/databaseIndex');
 
 /**
  *
@@ -106,24 +106,24 @@ async function loadTasksToDatabase() {
 				const taskLog = await db.get('SELECT * FROM tasks WHERE name = ?', task.name);
 
 				if (taskLog === undefined) {
-					beginTransaction();
+
 					query = 'INSERT INTO tasks (name, schedule, arguments, description, filepath, updated_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)';
 					const values = [task.name, task.schedule, task.arguments, task.description, task.filepath, task.updated_at, task.created_at];
 
 					await db.run(query, values);
-					commitTransaction();
+
 				}
 				else if (taskLog.updated_at === task.updated_at) {
 
 					continue;
 				}
 				else {
-					beginTransaction();
+
 					query = 'UPDATE tasks SET schedule = ?, arguments = ?, description = ?, filepath = ?, updated_at = ? WHERE name = ?';
 					const values = [task.schedule, task.arguments, task.description, task.filepath, task.updated_at, task.name];
 
 					await db.run(query, values);
-					commitTransaction();
+
 				}
 
 			}
@@ -131,7 +131,7 @@ async function loadTasksToDatabase() {
 		console.log('Tasks loaded.');
 	}
 	catch (error) {
-		rollbackTransaction();
+
 		console.log('Error detected in loadTasks', error);
 
 	}

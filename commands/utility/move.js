@@ -2,7 +2,7 @@ const { SlashCommandBuilder, AttachmentBuilder, CommandInteraction } = require('
 const axios = require('axios');
 // Logging
 const { commandLog, logUserCommand } = require('../../utils/userLogging/UserCommandLogging/LogUserCommand');
-const { isModerator } = require('../../utils/functions/isModerator');
+
 let output;
 
 const DEBUG = true;
@@ -14,14 +14,6 @@ async function moveCommand(interaction = new CommandInteraction()) {
 		await interaction.deferReply();
 
 		if (DEBUG) console.log('Deferred reply to interaction.');
-
-		// Check if the user has the "Moderator" role
-		if (!(await isModerator(interaction))) {
-			interaction.reply({ content : '<:GeoNo:1197290091203280906> You do not have permission to use this command.', ephemeral : true });
-
-			commandLog.status = 'Denied';
-			return;
-		}
 
 		const targetChannel = interaction.options.getChannel('channel');
 		const startId = interaction.options.getString('start');
@@ -203,4 +195,6 @@ module.exports = {
 				.setRequired(false)),
 	execute: moveCommand,
 	command: true,
+	moderator: true,
+	maintenance: false,
 };

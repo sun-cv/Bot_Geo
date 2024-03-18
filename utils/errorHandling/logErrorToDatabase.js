@@ -1,5 +1,5 @@
 // Database
-const { db, transaction, beginTransaction, commitTransaction, rollbackTransaction } = require('../../database/utils/databaseIndex');
+const { db } = require('../../database/utils/databaseIndex');
 
 const { newTimestamp } = require('../functions/timeKeeping/newTimestamp');
 
@@ -8,11 +8,6 @@ async function logErrorToDatabase(errorLog, event) {
 
 	try {
 		if (event === 'interaction') {
-		// Handle failed transaction with rollback
-			if (transaction === true) {
-				await rollbackTransaction();
-			}
-			await beginTransaction();
 
 			// Get current date and time
 			const time = await newTimestamp();
@@ -36,19 +31,12 @@ async function logErrorToDatabase(errorLog, event) {
 			if (user_id) {
 				db.run('UPDATE user SET error_count = error_count + 1 WHERE user_id = ?', user_id);
 			}
-			// COMMIT
-			await commitTransaction();
+
 
 			return;
 		}
 
 		else if (event === 'message') {
-
-			// Handle failed transaction with rollback
-			if (transaction === true) {
-				await rollbackTransaction();
-			}
-			await beginTransaction();
 
 			// Get current date and time
 			const time = await newTimestamp();
@@ -71,17 +59,9 @@ async function logErrorToDatabase(errorLog, event) {
 			if (user_id) {
 				await db.run('UPDATE user SET error_count = error_count + 1 WHERE user_id = ?', user_id);
 			}
-			// COMMIT
-			await commitTransaction();
 
 		}
 		else if (event === 'task') {
-
-			// Handle failed transaction with rollback
-			if (transaction === true) {
-				await rollbackTransaction();
-			}
-			await beginTransaction();
 
 			// Get current date and time
 			const time = await newTimestamp();
@@ -100,15 +80,10 @@ async function logErrorToDatabase(errorLog, event) {
 			// Run
 			await db.run(query, values);
 
-			// COMMIT
-			await commitTransaction();
-
 		}
 	}
 	catch (error) {
-		if (transaction.status) {
-			await rollbackTransaction();
-		}
+
 		console.log('Error detected in logErrorToDatabse.');
 		throw error;
 	}

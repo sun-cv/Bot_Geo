@@ -1,21 +1,12 @@
 const { SlashCommandBuilder, CommandInteraction } = require('discord.js');
 // Logging
 const { commandLog, logUserCommand } = require('../../utils/userLogging/UserCommandLogging/LogUserCommand');
-const { isModerator } = require('../../utils/functions/isModerator');
 
 async function cleanCommand(interaction = new CommandInteraction()) {
 
 	try {
 
 		const amount = interaction.options.getInteger('amount');
-
-		// Check if the user has the "Moderator" role
-		if (!(await isModerator(interaction))) {
-			await interaction.reply({ content : '<:GeoNo:1197290091203280906>You do not have permission to use this command ', ephemeral : true });
-
-			commandLog.status = 'Denied';
-			return;
-		}
 
 		// Fetch the messages
 		const messages = await interaction.channel.messages.fetch({ limit: amount });
@@ -59,4 +50,7 @@ module.exports = {
 				.setMaxValue(100)),
 	execute: cleanCommand,
 	command: true,
+	moderator: true,
+	maintenance: false,
+
 };

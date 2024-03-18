@@ -35,8 +35,6 @@ async function registerCommand(interaction = new CommandInteraction()) {
 
 		// Ensure Mercy tracker exists, if not - Add
 		await initializeMercy(interaction);
-		// Command Writes to DB - Begin transaction
-
 
 		// Pull user accounts info
 		const userAccounts = await getUserAccounts(userId);
@@ -289,4 +287,5 @@ module.exports = {
 	},
 	execute: registerCommand,
 	command: true,
+	maintenance: false,
 };

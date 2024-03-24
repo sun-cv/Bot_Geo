@@ -14,7 +14,7 @@ async function plariumCalendar(interaction = new CommandInteraction) {
 	const shareInputValue = interaction.options.getString('share');
 	if (shareInputValue === 'true') { shareCalendar = true; }
 
-	const filePath = `D:/Projects/Bot_Geo/commands/utility/raid/calenderScreenshots/${lastScreenshot}.png`;
+	const filePath = `D:/Projects/Bot_Geo/commands/utility/raid/calendarScreenshots/${lastScreenshot}.png`;
 
 	interaction.editReply({ content: `last updated on: ${lastUpdate}\n\n Ping <@271841393725407242> if out of date`, files: [{ attachment: filePath, name: 'latestCalendar.png' }], ephemeral: !shareCalendar });
 

@@ -1,17 +1,14 @@
 const { SlashCommandBuilder, AttachmentBuilder, CommandInteraction } = require('discord.js');
 const axios = require('axios');
-// Logging
-const { commandLog, logUserCommand } = require('../../utils/userLogging/UserCommandLogging/LogUserCommand');
+
+const { logUserCommand, commandLog } = require('../../../utils/index');
 
 let output;
 
-const DEBUG = true;
+const DEBUG = false;
 
 async function moveCommand(interaction = new CommandInteraction()) {
 	try {
-
-		// Defer the reply to the interaction
-		await interaction.deferReply();
 
 		if (DEBUG) console.log('Deferred reply to interaction.');
 
@@ -106,7 +103,7 @@ async function moveCommand(interaction = new CommandInteraction()) {
 			console.log(`Moving message with ID: ${message.id}`);
 
 			// If the author has changed, send a message with the author's name and timestamp
-			console.log('author', message.author.id);
+			console.log('author', message.author.username);
 			if (message.author.id !== lastAuthorId) {
 				await targetChannel.send(`${message.author.toString()} at ${formattedTime}:`);
 				lastAuthorId = message.author.id;
@@ -195,6 +192,8 @@ module.exports = {
 				.setRequired(false)),
 	execute: moveCommand,
 	command: true,
+	deferReply: true,
 	moderator: true,
 	maintenance: false,
+	ephemeral: false,
 };

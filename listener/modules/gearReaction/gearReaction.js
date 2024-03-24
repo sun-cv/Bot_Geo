@@ -41,7 +41,7 @@ async function handleFilteredMessage(message) {
 	try {
 		if (message.attachments.size > 0) {
 			for (const emoji of emojis) {
-				await message.react(emoji);
+				message.react(emoji);
 			}
 		}
 	}

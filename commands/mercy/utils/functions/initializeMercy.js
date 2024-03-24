@@ -20,8 +20,10 @@ async function initializeMercy(interaction) {
 		// get main user account
 		const mercyMain = await db.get('SELECT * FROM mercy_accounts where user_id = ? AND account = "main"', userId);
 
-		// if main does not exist
-		if (!mercyMain) {
+		if (mercyMain) {
+			return;
+		}
+		else {
 
 			const account = 'main';
 			// Insert main into into mercy_accounts
@@ -32,11 +34,7 @@ async function initializeMercy(interaction) {
 
 			// Thank you message
 			if (messagetoggle) {
-				const message = await interaction.channel.send({ content: `Thank you <@${interaction.user.id}> for trying our Mercy Tracker!\n\n Your **main** account has been initialized; \n - this is your default account when using commands in the mercy system.\n - You can add alts with /register. `, ephemeral: true });
-				// Delete message
-				setTimeout(() => {
-					message.delete();
-				}, 10000);
+				interaction.channel.send({ content: `Thank you <@${interaction.user.id}> for trying our Mercy Tracker!\n\n Your **main** account has been initialized; \n - this is your default account when using commands in the mercy system.\n - You can add alts with /register. `, ephemeral: true });
 			}
 		}
 	}

@@ -55,8 +55,6 @@ async function goldenKappa(client) {
 		else {
 			console.error('No eligible members found.');
 		}
-
-
 	}
 	catch (error) {
 		console.error('Error in goldenKappa:', error);

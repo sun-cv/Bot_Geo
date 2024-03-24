@@ -16,6 +16,7 @@ async function updateAccountLastActive(userId, account) {
 		throw error;
 	}
 }
+
 module.exports = {
 	updateAccountLastActive,
 };

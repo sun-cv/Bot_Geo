@@ -1,20 +1,11 @@
 const { SlashCommandBuilder, CommandInteraction } = require('discord.js');
-// Database
 const { db } = require('../../../database/utils/databaseIndex');
-// Logging
-const { commandLog, logUserCommand } = require('../../../utils/userLogging/UserCommandLogging/LogUserCommand');
-const { updateAccountLastActive } = require('../../../utils/userLogging/updateAccountLastActive');
-// Mercy utils
-const { identifierEmojis, initializeMercy, getUserAccounts, setUser } = require('../mercyIndex');
-// General utils
-const { addRoleToUser } = require('../../../utils/functions/addRoleToUser');
-// Autocomplete
+const { logUserCommand, commandLog, updateAccountLastActive, addRoleToUser, getUserId, getUsername, logColor } = require('../../../utils/index');
+const { identifierEmojis, shardColor, initializeMercy, getUserAccounts, setUser } = require('../mercyIndex');
 const { autocompleteUserAccounts } = require('../utils/functions/userAutoComplete');
-// Interaction constants
-const { getUserId, getUsername } = require('../../../utils/functions/interactionIndex');
 
 
-async function resetMercyCommand(interaction = new CommandInteraction()) {
+async function resetMercyCommand(interaction = new CommandInteraction(), trace) {
 
 	try {
 
@@ -54,7 +45,7 @@ async function resetMercyCommand(interaction = new CommandInteraction()) {
 		}
 		else if (accountInput !== null) {
 
-			interaction.reply({ content: `${accountInput} was not found. Check /register list to confirm account details`, ephemeral: true });
+			interaction.editReply({ content: `${accountInput} was not found. Check /register list to confirm account details`, ephemeral: true });
 
 			commandLog.status = 'Failed';
 
@@ -70,12 +61,14 @@ async function resetMercyCommand(interaction = new CommandInteraction()) {
 				setUser(userId, userAccount, shardType, count);
 			});
 
-			interaction.reply({ content: 'You\'ve successfully reset all mercy counts. Stay awesome!', ephemeral: true });
+			interaction.editReply({ content: 'You\'ve successfully reset all mercy counts. Stay awesome!', ephemeral: true });
 
 			commandLog.status = 'Success';
 			return;
 		}
 		else {
+
+			const consoleLog = [`${username}: reset `, `${shardColor[shard]}`, `${shard} `, !userAccount ? 'shards' : 'for account - ', 'cyan', `${userAccount}`];
 
 			// Reset the count for the specified shard type
 			// Primal ternary
@@ -85,14 +78,14 @@ async function resetMercyCommand(interaction = new CommandInteraction()) {
 				// WRITE - reset Primal count
 				await db.run(`UPDATE mercy_tracker SET ${column} = 0 WHERE user_id = ? AND account = ? AND shard = 'primal'`, [userId, userAccount]);
 
-				console.log(`${username} row ${shard} reset`);
+				console.log(await logColor(consoleLog));
 			}
 			else {
 
 				// WRITE - Reset Ancient, Void, Sacred
 				setUser(userId, userAccount, shard, count);
 
-				console.log(`${username} Row ${shard} reset`);
+				console.log(await logColor(consoleLog));
 			}
 
 			// Send the output
@@ -103,7 +96,8 @@ async function resetMercyCommand(interaction = new CommandInteraction()) {
 			else {
 				emoji = identifierEmojis[shard];
 			}
-			interaction.reply({ content: `You've successfully reset ${emoji}'s - Congratulations on your pull!`, ephemeral: true });
+
+			interaction.editReply({ content: `You've successfully reset your ${emoji} shards ${userAccount && userAccount !== 'main' ? `for account: ${userAccount} - Congratulations on your pull!` : ' - Congratulations on your pull!'}`, ephemeral: true });
 
 			// Update last active
 			await updateAccountLastActive(userId, userAccount);
@@ -126,7 +120,7 @@ async function resetMercyCommand(interaction = new CommandInteraction()) {
 		// Logging
 		commandLog.category = 'mercy';
 		commandLog.output = 'none';
-		logUserCommand(interaction, commandLog);
+		logUserCommand(interaction, commandLog, trace);
 	}
 }
 
@@ -162,5 +156,8 @@ module.exports = {
 	},
 	execute: resetMercyCommand,
 	command: true,
+	deferReply: true,
+	moderator: false,
 	maintenance: false,
+	ephemeral: true,
 };

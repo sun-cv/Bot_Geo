@@ -5,18 +5,31 @@ const { replacer } = require('./functions/bigIntReplacer');
 
 async function localErrorLogging(error, interaction, event) {
 
+	let errorLog;
 
 	if (event === 'interaction') {
-		const errorLog = {
-			channel_id: interaction.channel.id,
-			user_id: interaction.user.id,
-			username: interaction.user.username,
-			command: interaction.commandName,
-			errorName: error.name,
-			errorMessage: error.message,
-			stackTrace: error.stack,
-			interactionArgs: JSON.stringify([interaction], replacer),
-		};
+		if (interaction) {
+			errorLog = {
+				channel_id: interaction.channel.id,
+				user_id: interaction.user.id,
+				username: interaction.user.username,
+				command: interaction.commandName,
+				errorName: error.name,
+				errorMessage: error.message,
+				stackTrace: error.stack,
+				interactionArgs: JSON.stringify([interaction], replacer) };
+		}
+		else {
+			errorLog = {
+				channel_id: 'Failed at interactionCreate',
+				user_id: 'unknown',
+				username: 'unknown',
+				command: 'unknown',
+				errorName: error.name,
+				errorMessage: error.message,
+				stackTrace: error.stack,
+				interactionArgs: 'unknown' };
+		}
 
 
 		// Log the error to the terminal
@@ -26,7 +39,7 @@ async function localErrorLogging(error, interaction, event) {
 	}
 
 	else if (event === 'message') {
-		const errorLog = {
+		errorLog = {
 			channel_id: interaction.channel.id,
 			user_id: interaction.author.id,
 			username: interaction.author.username,
@@ -45,7 +58,7 @@ async function localErrorLogging(error, interaction, event) {
 
 	else if (event === 'task') {
 		const task = interaction;
-		const errorLog = {
+		errorLog = {
 			task: task.name,
 			content: task.content,
 			scheduled_time: task.schedule,

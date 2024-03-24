@@ -1,21 +1,11 @@
 const { SlashCommandBuilder, CommandInteraction } = require('discord.js');
-// Logging
-const { logUserCommand, commandLog } = require('../../../utils/userLogging/UserCommandLogging/LogUserCommand');
-const { updateAccountLastActive } = require('../../../utils/userLogging/updateAccountLastActive');
-// Pull utils
-const { getCurrentPulls, incrementUser } = require('./utils');
-// Mercy utils
+const { logUserCommand, commandLog, updateAccountLastActive, addRoleToUser, getUserId, getUsername } = require('../../../utils/index');
+const { getMercyLimit, getCurrentPulls, incrementUser } = require('./utils');
 const { identifierEmojis, initializeMercy, getUserAccounts, setUser } = require('../mercyIndex');
-const { getMercyLimit } = require('./utils/getMercyLimit');
-// General utils
-const { addRoleToUser } = require('../../../utils/functions/addRoleToUser');
-// Autocomplete
 const { autocompleteUserAccounts } = require('../utils/functions/userAutoComplete');
-// Interaction constants
-const { getUserId } = require('../../../utils/functions/interactionIndex');
 
 
-async function pullCommand(interaction = new CommandInteraction()) {
+async function pullCommand(interaction = new CommandInteraction(), trace) {
 
 	try {
 
@@ -24,6 +14,7 @@ async function pullCommand(interaction = new CommandInteraction()) {
 	 	*/
 
 		const userId = getUserId(interaction);
+		const username = getUsername(interaction);
 		const count = interaction.options.getInteger('count');
 		const shard = interaction.options.getString('shard');
 
@@ -53,7 +44,7 @@ async function pullCommand(interaction = new CommandInteraction()) {
 		}
 		else if (accountInput !== null) {
 
-			interaction.reply({ content: `${accountInput} was not found.\n\n Use /register list to confirm account details`, ephemeral: true });
+			interaction.followUp({ content: `${accountInput} was not found.\n\n Use /register list to confirm account details`, ephemeral: true });
 
 			commandLog.status = 'Failed';
 			return;
@@ -83,9 +74,13 @@ async function pullCommand(interaction = new CommandInteraction()) {
 			// WRITE - Reset shard count
 			await setUser(userId, userAccount, shard, 0);
 			// Notify user exceeded mercy limit
-			interaction.reply({ content: `You've pulled ${count} ${identifierEmojis[shard]}'s.\n\nYou've surpassed the ${mercyLimit} shard threshold for a 100% guaranteed pull by ${excess}${identifierEmojis[shard]}'s.\n\n**Congratulations!** You've now either pulled ${cycles > 1 ? `${cycles} ${shard === 'primal' ? 'mythicals' : 'legendaries'}` : `${shard === 'primal' ? 'a mythical' : 'a legendary' }`} or you may have entered an incorrect amount. \n\nYour mercy count has been reset to 0 `, ephemeral: true });
+			await interaction.editReply({ content: `<@${interaction.user.id}> pulled ${count} ${identifierEmojis[shard]}` });
 
-			commandLog.status = 'Failed';
+			setTimeout(() => { interaction.deleteReply(); }, 10000);
+
+			interaction.followUp({ content: `## **Congratulations ${username}!!** :tada:\n\nYou've pulled ${count} ${identifierEmojis[shard]}'s and surpassed the ${mercyLimit} shard threshold for a guaranteed pull by ${excess}${identifierEmojis[shard]}'s.\n\nYou've now pulled ${cycles > 1 ? `${cycles} ${shard === 'primal' ? 'mythicals' : 'legendaries'}` : `${shard === 'primal' ? 'a mythical' : 'a legendary' }`} ***or*** you may have entered an incorrect amount.\n\nyour mercy count has been reset to 0 `, ephemeral: true });
+
+			commandLog.status = 'failed';
 			return;
 		}
 		else {
@@ -93,14 +88,14 @@ async function pullCommand(interaction = new CommandInteraction()) {
 			// WRITE - If total pulls do not exceed mercy limit, proceed
 			await incrementUser(userId, userAccount, shard, count);
 
-			await interaction.reply({ content: `<@${interaction.user.id}> pulled ${count} ${identifierEmojis[shard]}`, fetchReply: true });
+			await interaction.editReply({ content: `<@${interaction.user.id}> pulled ${count} ${identifierEmojis[shard]}` });
 
-			setTimeout(() => { interaction.deleteReply(); }, 15000);
+			setTimeout(() => { interaction.deleteReply(); }, 10000);
 
 			// Update last active
-			await updateAccountLastActive(userId, userAccount);
+			updateAccountLastActive(userId, userAccount);
 			// Logging
-			commandLog.status = 'Success';
+			commandLog.status = 'success';
 			return;
 		}
 	}
@@ -120,7 +115,7 @@ async function pullCommand(interaction = new CommandInteraction()) {
 		// Logging
 		commandLog.category = 'Mercy';
 		commandLog.output = 'none';
-		logUserCommand(interaction, commandLog);
+		logUserCommand(interaction, commandLog, trace);
 	}
 
 }
@@ -162,6 +157,10 @@ module.exports = {
 	},
 	execute: pullCommand,
 	command: true,
+	deferReply: true,
+	moderator: false,
 	maintenance: false,
+	ephemeral: false,
+
 
 };

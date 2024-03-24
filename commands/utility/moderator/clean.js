@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, CommandInteraction } = require('discord.js');
-// Logging
-const { commandLog, logUserCommand } = require('../../utils/userLogging/UserCommandLogging/LogUserCommand');
+const { logUserCommand, commandLog } = require('../../../utils/index');
+
 
 async function cleanCommand(interaction = new CommandInteraction()) {
 
@@ -15,7 +15,7 @@ async function cleanCommand(interaction = new CommandInteraction()) {
 		await interaction.channel.bulkDelete(messages)
 			.then(deletedMessages => {
 			// Confirm deletion
-				interaction.reply({ content : `Deleted ${deletedMessages.size} messages!`, ephemeral : true });
+				interaction.editReply({ content : `Deleted ${deletedMessages.size} messages!`, ephemeral : true });
 			});
 
 		commandLog.status = 'success';
@@ -24,7 +24,7 @@ async function cleanCommand(interaction = new CommandInteraction()) {
 	}
 	catch (error) {
 
-		interaction.reply({ content: 'There was an error trying to delete messages. Make sure the messages are not older than 14 days.', ephemeral: true });
+		interaction.editReply({ content: 'There was an error trying to delete messages. Make sure the messages are not older than 14 days.', ephemeral: true });
 
 		commandLog.status = 'failed';
 		commandLog.error = error;
@@ -50,7 +50,9 @@ module.exports = {
 				.setMaxValue(100)),
 	execute: cleanCommand,
 	command: true,
+	deferReply: true,
 	moderator: true,
 	maintenance: false,
+	ephemeral: true,
 
 };

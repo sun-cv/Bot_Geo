@@ -1,20 +1,11 @@
 const { SlashCommandBuilder, CommandInteraction } = require('discord.js');
-// Database
 const { db, transaction, beginTransaction, commitTransaction, rollbackTransaction } = require('../../../database/utils/databaseIndex');
-// Logging
-const { logUserCommand, commandLog } = require('../../../utils/userLogging/UserCommandLogging/LogUserCommand');
-// Mercy utils
+const { logUserCommand, commandLog, updateAccountLastActive, addRoleToUser, getUserId, getUsername } = require('../../../utils/index');
 const { getUserAccounts, initializeMercy, insertUserTracker, insertUserAccount, getUserAccountsTotal } = require('../utils/functionIndex');
-// General utils
-const { addRoleToUser } = require('../../../utils/functions/addRoleToUser');
-// Autocomplete
 const { getAutoCompleteUserAccounts, updateAutoCompleteUserAccounts, autocompleteUserAccounts } = require('../utils/functions/userAutoComplete');
-// Interaction constants
-const { getUserId, getUsername } = require('../../../utils/functions/interactionIndex');
-const { updateAccountLastActive } = require('../../../utils/userLogging/updateAccountLastActive');
 
 
-async function registerCommand(interaction = new CommandInteraction()) {
+async function registerCommand(interaction = new CommandInteraction(), trace) {
 
 	try {
 
@@ -60,7 +51,7 @@ async function registerCommand(interaction = new CommandInteraction()) {
 					// Confirm account exists - Deny
 					if (userAccounts.some(user => user.account === accountToAdd)) {
 
-						interaction.reply({ content: `Account **${accountToAdd}** already exists`, ephemeral: true });
+						interaction.editReply({ content: `Account **${accountToAdd}** already exists`, ephemeral: true });
 
 						return;
 					}
@@ -68,7 +59,7 @@ async function registerCommand(interaction = new CommandInteraction()) {
 					// Confirm account limit - Deny
 					else if (userTotal.accounts >= altLimit) {
 
-						interaction.reply({ content: 'You\'ve reached the maximum number of 5 alts', ephemeral:true });
+						interaction.editReply({ content: 'You\'ve reached the maximum number of 5 alts', ephemeral:true });
 
 						return;
 					}
@@ -82,7 +73,7 @@ async function registerCommand(interaction = new CommandInteraction()) {
 						// Update last active - Has transaction
 						await updateAccountLastActive(userId, accountToAdd);
 
-						interaction.reply({ content: `Account **${accountToAdd}** was successfully registered.`, ephemeral: true });
+						interaction.editReply({ content: `Account **${accountToAdd}** was successfully registered.`, ephemeral: true });
 
 						commandLog.status = 'success';
 					}
@@ -113,7 +104,7 @@ async function registerCommand(interaction = new CommandInteraction()) {
 						});
 					}
 
-					await interaction.reply({ content: `You have registered the following accounts:\n${listAccounts}`, ephemeral: true });
+					await interaction.editReply({ content: `You have registered the following accounts:\n${listAccounts}`, ephemeral: true });
 
 					commandLog.status = 'success';
 
@@ -145,7 +136,7 @@ async function registerCommand(interaction = new CommandInteraction()) {
 					// If cancel - return
 					if (!confirmation) {
 
-						interaction.reply({ content: 'Account removal canceled', ephemeral: true });
+						interaction.editReply({ content: 'Account removal canceled', ephemeral: true });
 
 						// Rollback
 						await rollbackTransaction();
@@ -160,7 +151,7 @@ async function registerCommand(interaction = new CommandInteraction()) {
 						if (confirmation && accountToDelete === 'main') {
 							// Rollback
 							await rollbackTransaction();
-							interaction.reply({ content: 'You cannot delete your main account', ephemeral: true });
+							interaction.editReply({ content: 'You cannot delete your main account', ephemeral: true });
 							return;
 						}
 						// And user confirms - Delete
@@ -175,7 +166,7 @@ async function registerCommand(interaction = new CommandInteraction()) {
 							// Commit
 							await commitTransaction();
 
-							interaction.reply({ content: `account ${accountToDelete} has been removed succesfully.`, ephemeral: true });
+							interaction.editReply({ content: `account ${accountToDelete} has been removed succesfully.`, ephemeral: true });
 							// Update auto complete object
 							await updateAutoCompleteUserAccounts();
 							// Log Status
@@ -187,7 +178,7 @@ async function registerCommand(interaction = new CommandInteraction()) {
 							// Rollback
 							await rollbackTransaction();
 
-							interaction.reply({ content: `an error occured removing ${accountToDelete}.`, ephemeral: true });
+							interaction.editReply({ content: `an error occured removing ${accountToDelete}.`, ephemeral: true });
 							// Log Status
 							commandLog.status = 'failed';
 							return;
@@ -198,7 +189,7 @@ async function registerCommand(interaction = new CommandInteraction()) {
 						// Rollback
 						await rollbackTransaction();
 
-						interaction.reply({ content: `${accountToDelete} was not found.\n\nCheck /register list to confirm account details.`, ephemeral: true });
+						interaction.editReply({ content: `${accountToDelete} was not found.\n\nCheck /register list to confirm account details.`, ephemeral: true });
 						// Log Status
 						commandLog.status = 'failed';
 					}
@@ -233,11 +224,11 @@ async function registerCommand(interaction = new CommandInteraction()) {
 		// Add mercy role to user
 		addRoleToUser(interaction, 'Mercy');
 		// Update autocomplete
-		await getAutoCompleteUserAccounts();
+		getAutoCompleteUserAccounts();
 		// Logging
 		commandLog.category = 'Mercy';
 		commandLog.output = 'none';
-		logUserCommand(interaction, commandLog);
+		logUserCommand(interaction, commandLog, trace);
 	}
 }
 
@@ -287,5 +278,8 @@ module.exports = {
 	},
 	execute: registerCommand,
 	command: true,
+	deferReply: true,
+	moderator: false,
 	maintenance: false,
+	ephemeral: true,
 };

@@ -18,7 +18,6 @@ async function handleMessage(message) {
 			}
 		}
 		// If no filters applied, let the message pass through
-
 	}
 	catch (error) {
 		console.log('Error detected in Message Listener');

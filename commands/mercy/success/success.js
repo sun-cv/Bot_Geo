@@ -1,18 +1,10 @@
 const { SlashCommandBuilder, CommandInteraction } = require('discord.js');
-// Logging
-const { commandLog, logUserCommand } = require('../../../utils/userLogging/UserCommandLogging/LogUserCommand');
-const { updateAccountLastActive } = require('../../../utils/userLogging/updateAccountLastActive');
-// Mercy utils
+const { logUserCommand, commandLog, updateAccountLastActive, addRoleToUser, getUserId } = require('../../../utils/index');
 const { identifierEmojis, mercyConditions, initializeMercy, getUserAccounts, getShardCount } = require('../mercyIndex');
-// General utils
-const { addRoleToUser } = require('../../../utils/functions/addRoleToUser');
-// Autocomplete
 const { autocompleteUserAccounts } = require('../utils/functions/userAutoComplete');
-// Interaction constants
-const { getUserId } = require('../../../utils/functions/interactionIndex');
 
 
-async function successCommand(interaction = new CommandInteraction()) {
+async function successCommand(interaction = new CommandInteraction(), trace) {
 
 	try {
 
@@ -58,7 +50,7 @@ async function successCommand(interaction = new CommandInteraction()) {
 		}
 		else if (accountInput !== null) {
 
-			interaction.reply({ content: `${accountInput} was not found. Check /register list to confirm account details`, ephemeral: true });
+			interaction.editReply({ content: `${accountInput} was not found. Check /register list to confirm account details`, ephemeral: true });
 
 			commandLog.status = 'Failed';
 			return;
@@ -180,18 +172,12 @@ async function successCommand(interaction = new CommandInteraction()) {
 		const output = `You've pulled ${initialCount} ${identifierEmojis[shardNameForOutput]} shards to date <@${interaction.user.id}>.\n \nThe cumulative success chance of pulling a ${championType} from ${number} ${shardNameForOutput.replace('_', ' ')} shards is approximately ${totalSuccessChancePercent.toFixed(2)}%.`;
 
 		// Send the output
-		interaction.reply({ content: output, fetchReply: shareSuccess, ephemeral: !shareSuccess })
-			.then(message => {
-				if (shareSuccess) {
-					return new Promise((resolve, reject) => {
-						setTimeout(() => {
-							message.delete().then(resolve).catch(reject);
-						}, 15000);
-					});
-				}
-			});
+		interaction.editReply({ content: output, ephemeral: !shareSuccess });
+
+		if (shareSuccess) setTimeout(() => { interaction.deleteReply(); }, 15000);
+
 		// Update last active
-		await updateAccountLastActive(userId, userAccount);
+		updateAccountLastActive(userId, userAccount);
 		// Logging
 		commandLog.output = output;
 		commandLog.status = 'Success';
@@ -212,7 +198,7 @@ async function successCommand(interaction = new CommandInteraction()) {
 		addRoleToUser(interaction, 'Mercy');
 		// Logging
 		commandLog.category = 'Mercy';
-		logUserCommand(interaction, commandLog);
+		logUserCommand(interaction, commandLog, trace);
 	}
 }
 
@@ -272,7 +258,10 @@ module.exports = {
 	},
 	execute: successCommand,
 	command: true,
+	deferReply: true,
+	moderator: false,
 	maintenance: false,
+	ephemeral: true,
 	cooldownCount: 0,
 	subCommand: 'shareSuccess',
 	subCooldownCount: 120,

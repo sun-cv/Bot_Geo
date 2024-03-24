@@ -21,13 +21,16 @@ const client = new Client({
  * Main level error catcher - rework needed
  */
 
+const logTimestamp = new Date();
+
 process.on('unhandledRejection', (reason, promise) => {
-	console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+	console.error(`${logTimestamp}Unhandled Rejection at:`, promise, 'reason:', reason);
 	// Application specific logging, throwing an error, or other logic here
 });
 
+
 process.on('uncaughtException', (error) => {
-	console.error('Uncaught Exception:', error);
+	console.error(`${logTimestamp} Uncaught Exception:`, error);
 	// Application specific logging, throwing an error, or other logic here
 });
 

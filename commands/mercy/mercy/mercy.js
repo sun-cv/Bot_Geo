@@ -1,30 +1,21 @@
 const { SlashCommandBuilder, CommandInteraction } = require('discord.js');
-// Logging
-const { logUserCommand, commandLog } = require('../../../utils/userLogging/UserCommandLogging/LogUserCommand');
-const { updateAccountLastActive } = require('../../../utils/userLogging/updateAccountLastActive');
-// Mercy utils
+const { logUserCommand, commandLog, updateAccountLastActive, addRoleToUser, getUserId } = require('../../../utils/index');
 const { initializeMercy, getShardCount, getUserAccounts, mercyConditions, shardIdentifiers, identifierEmojis } = require('../mercyIndex');
-// General utils
-const { addRoleToUser } = require('../../../utils/functions/addRoleToUser');
-// Autocomplete
 const { autocompleteUserAccounts } = require('../utils/functions/userAutoComplete');
-// Interaction constants
-const { getUserId } = require('../../../utils/functions/interactionIndex');
 
 
-async function mercyCommand(interaction = new CommandInteraction) {
+async function mercyCommand(interaction = new CommandInteraction(), trace) {
 
 	try {
 
 		/**
-		*  Global constants
+		*  Constants
 		*/
 
+		// optional share mercy value
 		let shareMercy = false;
 
 		const userId = getUserId(interaction);
-		// optional share mercy value
-
 
 		/**
 		* Command Initialization
@@ -56,7 +47,7 @@ async function mercyCommand(interaction = new CommandInteraction) {
 		}
 		// If not found && not null - deny
 		else if (accountInput !== null) {
-			interaction.reply(`${accountInput} was not found. Use /register list to confirm account details`);
+			interaction.editReply(`${accountInput} was not found. Use /register list to confirm account details`);
 			commandLog.status = 'Failed';
 			return;
 		}
@@ -92,22 +83,15 @@ async function mercyCommand(interaction = new CommandInteraction) {
 		}
 
 		// Send output if share mercy true
-		interaction.reply({ content: output, fetchReply: shareMercy, ephemeral: !shareMercy })
-			.then(message => {
-				if (shareMercy) {
-					return new Promise((resolve, reject) => {
-						setTimeout(() => {
-							message.delete().then(resolve).catch(reject);
-						}, 15000);
-					});
-				}
-			});
+		interaction.editReply({ content: output, ephemeral: !shareMercy });
+
+		if (shareMercy) setTimeout(() => { interaction.deleteReply(); }, 15000);
 
 		// Update last active
-		await updateAccountLastActive(userId, userAccount);
+		updateAccountLastActive(userId, userAccount);
 		// Logging
 		commandLog.output = output;
-		commandLog.status = 'Success';
+		commandLog.status = 'success';
 		return;
 	}
 	catch (error) {
@@ -124,7 +108,7 @@ async function mercyCommand(interaction = new CommandInteraction) {
 		addRoleToUser(interaction, 'Mercy');
 		// Logging
 		commandLog.category = 'Mercy';
-		logUserCommand(interaction, commandLog);
+		logUserCommand(interaction, commandLog, trace);
 	}
 }
 
@@ -153,7 +137,10 @@ module.exports = {
 	},
 	execute: mercyCommand,
 	command: true,
+	deferReply: true,
+	moderator: false,
 	maintenance: false,
+	ephemeral: true,
 	cooldownCount: 0,
 	subCommand: 'shareMercy',
 	subCooldownCount: 120,

@@ -39,7 +39,7 @@ async function cooldownHandler(interaction, cooldownCommands) {
 			returnCooldown = true;
 			const timeLeft = (expirationTime - currentTime) / 1000;
 			if (deferReply) {
-				return interaction.updateReply({ content: `${currentCommandName} has a ${cooldownTime} minute cooldown. You must wait ${timeLeft.toFixed(0)} seconds`, ephemeral: true });
+				return interaction.editReply({ content: `${currentCommandName} has a ${cooldownTime} minute cooldown. You must wait ${timeLeft.toFixed(0)} seconds`, ephemeral: true });
 			}
 			else if (interaction.isAutocomplete()) {
 

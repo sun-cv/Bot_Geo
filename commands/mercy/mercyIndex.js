@@ -8,6 +8,7 @@ const {
 	shardIdentifiers,
 	identifierEmojis,
 	mercyConditions,
+	shardColor,
 } = require('./utils/constantsIndex');
 
 /**
@@ -32,6 +33,7 @@ module.exports = {
 	shardIdentifiers,
 	identifierEmojis,
 	mercyConditions,
+	shardColor,
 	// Data imports
 	getUserAccounts,
 	getUserAccountsTotal,

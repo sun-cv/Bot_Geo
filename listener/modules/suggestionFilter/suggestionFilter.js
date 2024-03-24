@@ -2,7 +2,8 @@
  * Toggle on off
  */
 
-const { getRandomEmoji } = require('../../../utils/functions/getRandomEmoji');
+const { delay } = require('../../../utils');
+const { getRandomEmoji } = require('../../../utils/functions/undesignated/getRandomEmoji');
 
 const toggle = true;
 
@@ -53,7 +54,7 @@ async function handleFilteredMessage(message) {
 
 			for (let i = 0; i < 3; i++) {
 				const emoji = getRandomEmoji(emojis);
-				await message.react(emoji);
+				message.react(emoji);
 			}
 		}
 
@@ -63,19 +64,21 @@ async function handleFilteredMessage(message) {
 
 			const warning = await message.reply('To properly record your suggestion, please start your message with one of the following tags:\n\n\n\nConfused? - Follow me for instructions! https://discord.com/channels/1132751121023250554/1184960653362987129/1185048638175576095');
 			for (let index = 0; index < pingTags.length; index++) {
-				await new Promise((resolve) => setTimeout(resolve, 1500));
+				await delay(1500);
 				await warning.edit(`To properly record your suggestion, please start your message with one of the following tags:\n\n${pingTags[index]}\n\nConfused? - Follow me for instructions! https://discord.com/channels/1132751121023250554/1184960653362987129/1185048638175576095`);
 			}
 
-			await new Promise((resolve) => setTimeout(resolve, 3000));
+			await delay(3000);
 			warning.edit('If you would like to save your message please do so now\n\nIt will be deleted in:');
+
 			for (let index = 0; index < 10; index++) {
 				const count = 10 - index;
-				await new Promise((resolve) => setTimeout(resolve, 1000));
+				await delay(1000);
 				await warning.edit(`If you would like to save your message please do so now\n\nIt will be deleted in: ${count}`);
 			}
 
-			await new Promise((resolve) => setTimeout(resolve, 1000));
+			await delay(1000);
+
 			warning.delete();
 			message.delete();
 		}

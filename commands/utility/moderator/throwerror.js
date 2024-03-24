@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, CommandInteraction } = require('discord.js');
 const fs = require('fs').promises;
-const { db } = require('../../database/utils/databaseIndex');
-const { logUserCommand, commandLog } = require('../../utils/userLogging/UserCommandLogging/LogUserCommand');
+const { db } = require('../../../database/utils/databaseIndex');
+const { logUserCommand, commandLog } = require('../../../utils/index');
 
 
 const DEBUG = false;
@@ -12,8 +12,6 @@ async function throwErrorCommand(interaction = new CommandInteraction()) {
 	const errorType = interaction.options.getString('type');
 
 	try {
-		// Defer reply
-		await interaction.deferReply();
 		// Throw error
 		switch (errorType) {
 		case 'TypeError':
@@ -29,16 +27,7 @@ async function throwErrorCommand(interaction = new CommandInteraction()) {
 		case 'EvalError':
 			throw new EvalError('This is an EvalError');
 		case 'DatabaseError':
-			await new Promise((resolve, reject) => {
-				db.get('SELECT * FROM non_existent_table', (err, row) => {
-					if (err) {
-						reject(new Error(`DatabaseError: ${err.message}`));
-					}
-					else {
-						resolve(row);
-					}
-				});
-			});
+			await db.get('SELECT * FROM non_existent_table');
 			break;
 		case 'FileSystemError':
 			await fs.readFile('/path/to/non/existent/file');
@@ -55,11 +44,11 @@ async function throwErrorCommand(interaction = new CommandInteraction()) {
 
 		// If debug log
 		if (DEBUG) {
-			console.log('Error details:', error);
+			console.error('Error details:', error);
 		}
 		commandLog.status = 'failed';
 		commandLog.error = error;
-		console.log('Error detected in Mercy - Register command');
+		console.error('Error detected in throw error');
 		throw error;
 	}
 
@@ -91,7 +80,9 @@ module.exports = {
 				)),
 	execute: throwErrorCommand,
 	command: true,
+	deferReply: true,
 	moderator: true,
 	maintenance: false,
+	ephemeral: true,
 };
 

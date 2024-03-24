@@ -1,47 +1,45 @@
 const fs = require('fs');
 const path = require('path');
+const { newTimestamp } = require('../../../../utils/functions/timeKeeping/newTimestamp');
+const { getBackupFileName } = require('../utils/getBackupFileName');
+const { createBackupDirectories } = require('../utils/createBackupDirectories');
 
-// Path to your database file
+// Define paths
 const dbPath = 'D:/Projects/Bot_Geo/database/database.db';
+const backupDirC = 'C:/Projects/backup/day';
+const backupDirD = 'D:/Projects/Bot_Geo/database/backup/day';
 
-// Path to the backup directory
-const backupDir = 'D:/Projects/Bot_Geo/database/backup/day';
+const backupDirs = [
+	backupDirD,
+	backupDirC,
+];
 
-// Ensure the backup directory exists
-if (!fs.existsSync(backupDir)) {
-	fs.mkdirSync(backupDir);
-}
-
-// Function to backup the database
-function dailyBackup() {
+// Backup the database
+async function dailyBackup() {
 	try {
+		await createBackupDirectories (backupDirs);
 
-		// Create a date object
-		const date = new Date();
+		const timestamp = await newTimestamp('hour');
 
-		// Format the date
-		const year = date.getFullYear();
-		const month = ('0' + (date.getMonth() + 1)).slice(-2);
-		const day = ('0' + date.getDate()).slice(-2);
+		const fileName = await getBackupFileName();
+		const backupPathD = path.join(backupDirD, fileName);
+		const backupPathC = path.join(backupDirC, fileName);
 
-		// Combine the parts
-		const timestamp = `${year}-${month}-${day}`;
+		fs.copyFileSync(dbPath, backupPathD);
+		fs.copyFileSync(dbPath, backupPathC);
 
-		// Path to the backup file
-		const backupPath = path.join(backupDir, `backup_${timestamp}.db`);
-
-		// Copy the database file to the backup directory
-		fs.copyFileSync(dbPath, backupPath);
-
-		console.log(`Database backed up to ${backupPath}`);
+		console.log(`${timestamp}: Daily database backed up to ${backupPathC}`);
+		console.log(`${timestamp}: Daily database backed up to ${backupPathD}`);
 
 	}
 	catch (error) {
-		console.log('Error detected in dailyBackup');
+		console.error('Error detected in dailyBackup:', error.message);
 		throw error;
 	}
 }
+
 // Schedule the backup to run every 24 hours
 module.exports = {
 	dailyBackup,
-	task: true };
+	task: true,
+};

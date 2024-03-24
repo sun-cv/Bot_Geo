@@ -1,13 +1,13 @@
 /* eslint-disable no-unused-vars */
 const { SlashCommandBuilder, CommandInteraction } = require('discord.js');
 
-const cleanLogs = require('../../tasks/tasks/database/cleanLogs/cleanLogs');
-
-
 async function testCommand(interaction = new CommandInteraction()) {
-
-	cleanLogs();
-
+	try {
+		// nothing
+	}
+	catch (error) {
+		console.error(error);
+	}
 }
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -15,6 +15,8 @@ module.exports = {
 		.setDescription('test command'),
 	execute: testCommand,
 	command: true,
+	deferReply: false,
 	moderator: true,
 	maintenance: false,
+	ephemeral: true,
 };

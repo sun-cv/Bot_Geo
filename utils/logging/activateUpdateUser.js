@@ -22,7 +22,6 @@ async function activateUpdateUser(interaction) {
 			await db.run('INSERT INTO user (user_id, username, last_active, registration_date) VALUES (?, ?, ?, ?)', [userId, username, timestamp, timestamp]);
 
 			console.log(`Added user ${username} to database succesfully.`);
-
 		}
 		else {
 			db.run('UPDATE user SET last_active = ? WHERE user_id = ?', [timestamp, userId]);

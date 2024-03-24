@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, CommandInteraction } = require('discord.js');
-const { commandLog, logUserCommand } = require('../../utils/userLogging/UserCommandLogging/LogUserCommand');
+const { logUserCommand, commandLog } = require('../../../utils/index');
+
 let output;
 
 async function pingCommand(interaction = new CommandInteraction()) {
@@ -26,7 +27,7 @@ async function pingCommand(interaction = new CommandInteraction()) {
 
 		if (hasRequiredRole && isCorrectCategory && isValidRole) {
 
-			await interaction.reply({ content: `${pingedRole} ${message}`, allowedMentions: { roles: [pingedRole.id] }, fetchReply: true });
+			interaction.editReply({ content: `${pingedRole} ${message}`, allowedMentions: { roles: [pingedRole.id] }, fetchReply: true });
 
 			commandLog.status = 'Success';
 			return;
@@ -48,7 +49,7 @@ async function pingCommand(interaction = new CommandInteraction()) {
 
 			// If any condition fails, send the error message
 			if (errorMessage) {
-				await interaction.reply({ content: errorMessage, ephemeral: true });
+				interaction.editReply({ content: errorMessage, ephemeral: true });
 			}
 
 			output = `${message}`;
@@ -88,4 +89,8 @@ module.exports = {
 				.setRequired(true)),
 	execute: pingCommand,
 	command: true,
+	deferReply: true,
+	moderator: false,
+	maintenance: false,
+	ephemeral: false,
 };

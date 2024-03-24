@@ -41,7 +41,6 @@ class TaskManager {
 			// Import tasks
 			let module;
 			// Pass arguments
-
 			const argument = {
 				client: this.client,
 			};
@@ -78,9 +77,7 @@ class TaskManager {
 					name: task.name,
 					schedule: intervalLive,
 					content: task.description,
-					// other properties here as needed
 				});
-
 				// Try to run the next task in the queue
 				this.runNextTask();
 			});
@@ -106,7 +103,6 @@ class TaskManager {
 		if (this.taskQueue.length > 0) {
 			this.runNextTask().catch(error => {
 				console.error('Error detected in recursive call to runNextTask', error);
-				// Handle the error appropriately here
 			});
 		}
 	}

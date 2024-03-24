@@ -1,38 +1,41 @@
 const fs = require('fs');
 const path = require('path');
+const { newTimestamp } = require('../../../../utils/functions/timeKeeping/newTimestamp');
+const { getBackupFileName } = require('../utils/getBackupFileName');
+const { createBackupDirectories } = require('../utils/createBackupDirectories');
 
-// Path to your database file
+// Define paths
 const dbPath = 'D:/Projects/Bot_Geo/database/database.db';
+const backupDirD = 'D:/Projects/Bot_Geo/database/backup/week';
+const backupDirC = 'C:/Projects/backup/week';
 
-// Path to the backup directory
-const backupDir = 'D:/Projects/Bot_Geo/database/backup/week';
+const backupDirs = [
+	backupDirD,
+	backupDirC,
+];
 
-// Ensure the backup directory exists
-if (!fs.existsSync(backupDir)) {
-	fs.mkdirSync(backupDir);
-}
+// Backup the database
+async function weeklyBackup() {
+	try {
+		await createBackupDirectories (backupDirs);
 
-// Function to backup the database
-function weeklyBackup() {
+		const timestamp = await newTimestamp('hour');
 
-	// Create a date object
-	const date = new Date();
+		const fileName = await getBackupFileName();
+		const backupPathD = path.join(backupDirD, fileName);
+		const backupPathC = path.join(backupDirC, fileName);
 
-	// Format the date
-	const year = date.getFullYear();
-	const month = ('0' + (date.getMonth() + 1)).slice(-2);
-	const day = ('0' + date.getDate()).slice(-2);
+		fs.copyFileSync(dbPath, backupPathD);
+		fs.copyFileSync(dbPath, backupPathC);
 
-	// Combine the parts
-	const timestamp = `${year}-${month}-${day}`;
+		console.log(`${timestamp}: Weekly database backed up to ${backupPathC}`);
+		console.log(`${timestamp}: Weekly database backed up to ${backupPathD}`);
 
-	// Path to the backup file
-	const backupPath = path.join(backupDir, `backup_${timestamp}.db`);
-
-	// Copy the database file to the backup directory
-	fs.copyFileSync(dbPath, backupPath);
-
-	console.log(`Database backed up to ${backupPath}`);
+	}
+	catch (error) {
+		console.error('Error detected in weeklyBackup:', error.message);
+		throw error;
+	}
 }
 
 // Schedule the backup to run every 24 hours

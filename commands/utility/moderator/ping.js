@@ -53,7 +53,7 @@ async function pingCommand(interaction = new CommandInteraction()) {
 			}
 
 			output = `${message}`;
-			commandLog.status = 'Denied';
+			commandLog.status = 'denied';
 
 			return;
 		}

@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 const { Events, Collection } = require('discord.js');
 const { admin } = require('../config.json');
-const { interactionErrorHandling, newTimestamp, activateUpdateUser } = require('../utils/index');
+const { logUserCommand, commandLog, interactionErrorHandling, newTimestamp, activateUpdateUser } = require('../utils/index');
 const { cooldownHandler } = require('./utils/functions/cooldownHandler');
 const { commandTrace, userCommandTrace } = require('./utils/objects/userCommandTrace');
 
@@ -43,8 +43,14 @@ module.exports = {
 			// Mod check
 			if (moderator) {
 				if (!member.roles.cache.some(role => role.name === 'Moderator')) {
+
 					interaction.reply({ content: 'You do not have permission to use this command.', ephemeral: true });
-					console.log(`${timestamp}: ${member.user.username} was denied access to ${commandName}`);
+
+					commandLog.status = 'denied';
+					commandLog.output = 'none';
+
+					await logUserCommand(interaction, commandLog);
+					await activateUpdateUser(interaction);
 					return;
 				}
 			}

@@ -47,7 +47,7 @@ async function resetMercyCommand(interaction = new CommandInteraction(), trace) 
 
 			interaction.editReply({ content: `${accountInput} was not found. Check /register list to confirm account details`, ephemeral: true });
 
-			commandLog.status = 'Failed';
+			commandLog.status = 'failed';
 
 			return;
 		}
@@ -63,7 +63,7 @@ async function resetMercyCommand(interaction = new CommandInteraction(), trace) 
 
 			interaction.editReply({ content: 'You\'ve successfully reset all mercy counts. Stay awesome!', ephemeral: true });
 
-			commandLog.status = 'Success';
+			commandLog.status = 'success';
 			return;
 		}
 		else {
@@ -102,7 +102,7 @@ async function resetMercyCommand(interaction = new CommandInteraction(), trace) 
 			// Update last active
 			await updateAccountLastActive(userId, userAccount);
 			// Logging
-			commandLog.status = 'Success';
+			commandLog.status = 'success';
 			return;
 
 		}

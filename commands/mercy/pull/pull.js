@@ -46,7 +46,7 @@ async function pullCommand(interaction = new CommandInteraction(), trace) {
 
 			interaction.followUp({ content: `${accountInput} was not found.\n\n Use /register list to confirm account details`, ephemeral: true });
 
-			commandLog.status = 'Failed';
+			commandLog.status = 'failed';
 			return;
 		}
 

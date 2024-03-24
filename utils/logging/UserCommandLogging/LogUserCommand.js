@@ -4,6 +4,7 @@ const { db } = require('../../../database/database');
 const { constructFullCommand } = require('./constructFullCommand');
 const { newTimestamp } = require('../../functions/timeKeeping/newTimestamp');
 const { userCommandTrace } = require('../../../events/utils/objects/userCommandTrace');
+const { logColor } = require('../../functions/stylistic/logColor');
 
 
 // Export object for execution logging
@@ -27,6 +28,11 @@ async function logUserCommand(interaction, log, trace) {
 		localOutput = null,
 		status = null } = log;
 
+	const statusColors = {
+		success: 'green',
+		failed: 'yellow',
+		denied: 'red',
+	};
 
 	let errorName;
 	if (log.error) {
@@ -55,15 +61,15 @@ async function logUserCommand(interaction, log, trace) {
 
 		const hour = await newTimestamp('hour');
 
-
 		// Log
 		if (trace) {
 			const context = userCommandTrace.get(trace);
-			console.log(`${context.count} - ${context.time} > ${hour}: ${username} used ${command} - ${log.status}`);
+
+			console.log(await logColor([`${context.count} - ${context.time} > ${hour}: ${username} used ${command} - `, `${statusColors[log.status]}`, `${log.status}`]));
 			userCommandTrace.delete(trace);
 		}
 		else {
-			console.log(`${hour}: ${username} used ${command} - ${log.status}`);
+			console.log(await logColor([`${hour}: ${username} used ${command} - `, `${statusColors[log.status]}`, `${log.status}`]));
 		}
 	}
 	catch (error) {

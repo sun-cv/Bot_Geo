@@ -52,7 +52,7 @@ async function successCommand(interaction = new CommandInteraction(), trace) {
 
 			interaction.editReply({ content: `${accountInput} was not found. Check /register list to confirm account details`, ephemeral: true });
 
-			commandLog.status = 'Failed';
+			commandLog.status = 'failed';
 			return;
 		}
 
@@ -180,7 +180,7 @@ async function successCommand(interaction = new CommandInteraction(), trace) {
 		updateAccountLastActive(userId, userAccount);
 		// Logging
 		commandLog.output = output;
-		commandLog.status = 'Success';
+		commandLog.status = 'success';
 		return;
 
 	}

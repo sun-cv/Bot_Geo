@@ -26,4 +26,5 @@ async function insertUserTracker(userId, username, account, shard, number) {
 
 module.exports = {
 	insertUserTracker,
+	ignoreLoading: true,
 };

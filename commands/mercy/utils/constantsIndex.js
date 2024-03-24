@@ -9,4 +9,6 @@ module.exports = {
 	mercyConditions,
 	shardColor,
 	shardIdentifiers,
+
+	ignoreLoading: true,
 };

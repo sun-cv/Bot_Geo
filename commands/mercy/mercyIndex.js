@@ -46,4 +46,6 @@ module.exports = {
 	insertUserTracker,
 	insertUserAccount,
 	// Mercy data output
+
+	ignoreLoading: true,
 };

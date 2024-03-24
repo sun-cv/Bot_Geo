@@ -10,4 +10,5 @@ const mercyConditions = {
 
 module.exports = {
 	mercyConditions,
+	ignoreLoading: true,
 };

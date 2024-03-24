@@ -13,4 +13,7 @@ async function getCurrentPulls(userId, userAccount, shard) {
 	}
 }
 
-module.exports = { getCurrentPulls };
+module.exports = {
+	getCurrentPulls,
+	ignoreLoading: true,
+};

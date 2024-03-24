@@ -1,11 +1,13 @@
 /**
- *
+ *----------------
  * UTILS
- *
+ *----------------
  */
 
 /**
+ * ----------------
  * Error handling
+ * ----------------
  */
 
 // event error handling
@@ -17,8 +19,11 @@ const { localErrorLogging } = require('./errorHandling/localErrorLogging');
 const { logErrorToDatabase } = require('./errorHandling/logErrorToDatabase');
 // utils
 const { replacer } = require('./errorHandling/functions/bigIntReplacer');
+
 /**
+ * ----------------
  * Functions
+ * ----------------
  */
 
 // stylistic
@@ -31,9 +36,10 @@ const { getRandomEmoji } = require('./functions/undesignated/getRandomEmoji');
 const { delay } = require('./functions/utility/delay');
 const { timeoutFallback } = require('./functions/utility/timeoutFallback');
 
-
 /**
+ * ----------------
  * Logging
+ * ----------------
  */
 
 // user Logging
@@ -43,9 +49,13 @@ const { updateAccountLastActive } = require('./logging/updateAccountLastActive')
 const { logUserCommand, commandLog } = require('./logging/UserCommandLogging/LogUserCommand');
 const { constructFullCommand } = require('./logging/UserCommandLogging/constructFullCommand');
 const { addRoleToUser } = require('./functions/utility/addRoleToUser');
+
 /**
+ * ----------------
  * Interaction index
+ * ----------------
  */
+
 const { getUserId, getUsername, getChannelId, getMessageId } = require('./functions/interactionIndex');
 
 
@@ -87,5 +97,4 @@ module.exports = {
 	getUsername,
 	getChannelId,
 	getMessageId,
-
 };

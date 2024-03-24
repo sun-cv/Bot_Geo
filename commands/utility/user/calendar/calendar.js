@@ -1,5 +1,5 @@
 const { CommandInteraction, SlashCommandBuilder } = require('discord.js');
-const { logUserCommand, commandLog, updateAccountLastActive, getUserId } = require('../../../utils');
+const { logUserCommand, commandLog, updateAccountLastActive, getUserId } = require('../../../../utils');
 
 
 async function plariumCalendar(interaction = new CommandInteraction, trace) {
@@ -17,7 +17,7 @@ async function plariumCalendar(interaction = new CommandInteraction, trace) {
 	const shareInputValue = interaction.options.getString('share');
 	if (shareInputValue === 'true') { shareCalendar = true; }
 
-	const filePath = `D:/Projects/Bot_Geo/commands/utility/raid/calendarScreenshots/${lastScreenshot}.png`;
+	const filePath = `D:/Projects/Bot_Geo/commands/utility/user/calendar/calendarScreenshots/${lastScreenshot}.png`;
 	try {
 
 		interaction.editReply({ content: `last updated on: ${lastUpdate}\n\n Ping <@271841393725407242> if out of date`, files: [{ attachment: filePath, name: 'latestCalendar.png' }], ephemeral: !shareCalendar });

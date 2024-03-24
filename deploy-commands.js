@@ -17,19 +17,40 @@ for (const folder of commandFolders) {
 		const stats = fs.statSync(itemPath);
 
 		if (stats.isDirectory()) {
-			const commandFiles = fs.readdirSync(itemPath).filter(file => file.endsWith('.js'));
+			const subItems = fs.readdirSync(itemPath);
 
-			for (const file of commandFiles) {
-				const filePath = path.join(itemPath, file);
-				const command = require(filePath);
-				if (command.ignoreLoading) {
-					continue;
+			for (const subItem of subItems) {
+				const subItemPath = path.join(itemPath, subItem);
+				const subStats = fs.statSync(subItemPath);
+
+				if (subStats.isDirectory()) {
+					const commandFiles = fs.readdirSync(subItemPath).filter(file => file.endsWith('.js'));
+
+					for (const file of commandFiles) {
+						const filePath = path.join(subItemPath, file);
+						const command = require(filePath);
+						if (command.ignoreLoading) {
+							continue;
+						}
+						if (command.data instanceof SlashCommandBuilder && typeof command.execute === 'function') {
+							commands.push(command.data.toJSON());
+						}
+						else {
+							console.log(`[WARNING] The file at ${filePath} is not a valid command file.`);
+						}
+					}
 				}
-				if (command.data instanceof SlashCommandBuilder && typeof command.execute === 'function') {
-					commands.push(command.data.toJSON());
-				}
-				else {
-					console.log(`[WARNING] The file at ${filePath} is not a valid command file.`);
+				else if (subItem.endsWith('.js')) {
+					const command = require(subItemPath);
+					if (command.ignoreLoading) {
+						continue;
+					}
+					if (command.data instanceof SlashCommandBuilder && typeof command.execute === 'function') {
+						commands.push(command.data.toJSON());
+					}
+					else {
+						console.log(`[WARNING] The file at ${subItemPath} is not a valid command file.`);
+					}
 				}
 			}
 		}

@@ -69,4 +69,5 @@ module.exports = {
 	getAutoCompleteUserAccounts,
 	updateAutoCompleteUserAccounts,
 	autocompleteUserAccounts,
+	ignoreLoading: true,
 };

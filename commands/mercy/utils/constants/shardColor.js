@@ -8,4 +8,5 @@ const shardColor = {
 
 module.exports = {
 	shardColor,
+	ignoreLoading: true,
 };

@@ -23,4 +23,5 @@ module.exports = {
 	incrementUser,
 	setUser,
 
+	ignoreLoading: true,
 };

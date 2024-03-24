@@ -18,4 +18,7 @@ async function incrementUser(userId, userAccount, shard, count) {
 	}
 }
 
-module.exports = { incrementUser };
+module.exports = {
+	incrementUser,
+	ignoreLoading: true,
+};

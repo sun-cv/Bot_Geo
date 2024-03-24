@@ -47,5 +47,6 @@ async function initializeMercy(interaction) {
 
 module.exports = {
 	initializeMercy,
+	ignoreLoading: true,
 };
 

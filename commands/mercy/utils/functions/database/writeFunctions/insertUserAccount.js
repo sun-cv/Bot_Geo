@@ -23,4 +23,5 @@ async function insertUserAccount(userId, username, account) {
 
 module.exports = {
 	insertUserAccount,
+	ignoreLoading: true,
 };

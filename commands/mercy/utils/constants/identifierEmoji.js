@@ -7,4 +7,5 @@ const identifierEmojis = {
 
 module.exports = {
 	identifierEmojis,
+	ignoreLoading: true,
 };

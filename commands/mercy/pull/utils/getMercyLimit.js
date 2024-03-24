@@ -17,4 +17,5 @@ function getMercyLimit(shard) {
 
 module.exports = {
 	getMercyLimit,
+	ignoreLoading: true,
 };

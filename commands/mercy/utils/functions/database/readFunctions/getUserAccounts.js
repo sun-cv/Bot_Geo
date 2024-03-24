@@ -17,5 +17,6 @@ async function getUserAccounts(userId) {
 
 module.exports = {
 	getUserAccounts,
+	ignoreLoading: true,
 };
 

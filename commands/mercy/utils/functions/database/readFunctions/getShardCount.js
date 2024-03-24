@@ -25,4 +25,5 @@ async function getShardCount(userId, userAccount, shard, column) {
 
 module.exports = {
 	getShardCount,
+	ignoreLoading: true,
 };

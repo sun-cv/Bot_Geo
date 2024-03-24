@@ -24,4 +24,6 @@ module.exports = {
 	setUser,
 	// Mercy data output
 	getShardCount,
+
+	ignoreLoading: true,
 };

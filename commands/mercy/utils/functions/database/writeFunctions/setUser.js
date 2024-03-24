@@ -15,4 +15,7 @@ async function setUser(userId, userAccount, shard, count) {
 	}
 }
 
-module.exports = { setUser };
+module.exports = {
+	setUser,
+	ignoreLoading: true,
+};

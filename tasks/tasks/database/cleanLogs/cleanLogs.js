@@ -49,7 +49,7 @@ async function cleanLogs() {
 			console.log('No logs to clear');
 		}
 		else if (totalCount > 0) {
-			console.log('Logs cleaned successfully:', log.count);
+			console.log('Logs cleaned successfully:', totalCount);
 		}
 	}
 	catch (error) {

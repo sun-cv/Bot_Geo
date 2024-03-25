@@ -36,6 +36,35 @@ async function logErrorToDatabase(errorLog, event) {
 			return;
 		}
 
+		if (event === 'button') {
+
+			// Get current date and time
+			const time = await newTimestamp();
+			const timestamp = new Date().toISOString();
+
+			// Define error log info
+			const { channel_id, user_id, username, command, errorName, errorMessage, stackTrace, interactionArgs } = errorLog;
+
+			// Define query
+			const query = `
+        INSERT INTO error_log
+        (channel_id, user_id, username, command, error_name, error_message, stack_trace, interaction_args, time, timestamp)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
+			// Define values
+			const values = [channel_id, user_id, username, command, errorName, errorMessage, stackTrace, interactionArgs, time, timestamp];
+			// Run
+			await db.run(query, values);
+
+			// Increment user error count
+			if (user_id) {
+				db.run('UPDATE user SET error_count = error_count + 1 WHERE user_id = ?', user_id);
+			}
+
+
+			return;
+		}
+
 		else if (event === 'message') {
 
 			// Get current date and time

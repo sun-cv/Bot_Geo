@@ -12,6 +12,7 @@
 
 // event error handling
 const { interactionErrorHandling } = require('./errorHandling/interactionErrorHandling');
+const { buttonErrorHandling } = require('./errorHandling/buttonErrorHandling');
 const { messageErrorHandling } = require('./errorHandling/messageErrorHandling');
 const { taskErrorHandling } = require('./errorHandling/tasksErrorHandling');
 // function error handling
@@ -63,11 +64,12 @@ module.exports = {
 	// error handling
 	// event error handling
 	interactionErrorHandling,
-	localErrorLogging,
-	logErrorToDatabase,
-	// function error handling
+	buttonErrorHandling,
 	messageErrorHandling,
 	taskErrorHandling,
+	// function error handling
+	localErrorLogging,
+	logErrorToDatabase,
 	// utils
 	replacer,
 

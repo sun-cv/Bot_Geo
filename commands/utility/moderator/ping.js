@@ -29,7 +29,7 @@ async function pingCommand(interaction = new CommandInteraction()) {
 
 			interaction.editReply({ content: `${pingedRole} ${message}`, allowedMentions: { roles: [pingedRole.id] }, fetchReply: true });
 
-			commandLog.status = 'Success';
+			commandLog.status = 'success';
 			return;
 
 		}

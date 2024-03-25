@@ -14,9 +14,11 @@ const client = new Client({
 		GatewayIntentBits.GuildMessages,
 		GatewayIntentBits.MessageContent,
 		GatewayIntentBits.GuildMembers,
+		GatewayIntentBits.MessageContent,
 	],
 });
 
+client.buttons = new Collection();
 /**
  * Main level error catcher - rework needed
  */
@@ -76,12 +78,45 @@ for (const file of eventFiles) {
 	const filePath = path.join(eventsPath, file);
 	const event = require(filePath);
 	if (event.once) {
-		client.once(event.name, (...args) => event.execute(...args));
+		client.once(event.name, (...args) => event.execute(client, ...args));
 	}
 	else {
-		client.on(event.name, (...args) => event.execute(...args));
+		client.on(event.name, (...args) => event.execute(client, ...args));
 	}
 }
+
+/**
+ *  Button Loader
+ */
+
+function loadButtons(clientIn, dirPath) {
+
+	const items = fs. readdirSync(dirPath);
+
+	for (const item of items) {
+		const itemPath = path.join(dirPath, item);
+		const stats = fs.statSync(itemPath);
+
+		if (stats.isDirectory()) {
+			loadButtons(clientIn, itemPath);
+		}
+		else if (item.endsWith('js')) {
+			const buttons = require(itemPath);
+			if (Array.isArray(buttons)) {
+				for (const button of buttons) {
+					client.buttons.set(button.customId, button);
+				}
+			}
+			else {
+				client.buttons.set(buttons.customId, buttons);
+			}
+		}
+	}
+}
+
+
+const buttonsPath = path.join(__dirname, 'buttons');
+loadButtons(client, buttonsPath);
 
 /**
  * Message Listener

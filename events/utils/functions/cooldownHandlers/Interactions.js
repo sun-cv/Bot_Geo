@@ -1,6 +1,6 @@
 const { Collection } = require('discord.js');
 
-async function cooldownHandler(interaction, cooldownCommands) {
+async function InteractionCooldownHandler(interaction, cooldownCommands) {
 
 	const { member, commandName } = interaction;
 	const command = interaction.client.commands.get(commandName);
@@ -31,9 +31,9 @@ async function cooldownHandler(interaction, cooldownCommands) {
 
 	const currentTime = Date.now();
 
-	if (timestamps.has(`${currentCommandName}-${member.id}`)) {
+	if (timestamps.has(commandCooldownKey)) {
 
-		const expirationTime = timestamps.get(`${currentCommandName}-${member.id}`) + cooldownAmount;
+		const expirationTime = timestamps.get(commandCooldownKey) + cooldownAmount;
 
 		if (currentTime < expirationTime) {
 			returnCooldown = true;
@@ -57,5 +57,5 @@ async function cooldownHandler(interaction, cooldownCommands) {
 }
 
 module.exports = {
-	cooldownHandler,
+	InteractionCooldownHandler,
 };

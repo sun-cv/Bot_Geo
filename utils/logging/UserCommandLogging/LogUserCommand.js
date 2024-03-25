@@ -21,8 +21,13 @@ async function logUserCommand(interaction, log, trace) {
 	const channelId = getChannelId(interaction);
 	const userId = getUserId(interaction);
 	const username = getUsername(interaction);
-	const command = await constructFullCommand(interaction);
-
+	let command;
+	if (interaction.isButton()) {
+		command = interaction.customId;
+	}
+	else {
+		command = await constructFullCommand(interaction);
+}
 	const {
 		category = null,
 		localOutput = null,
@@ -67,6 +72,15 @@ async function logUserCommand(interaction, log, trace) {
 
 			console.log(await logColor([`${context.count} - ${context.time} > ${hour}: ${username} used ${command} - `, `${statusColors[log.status]}`, `${log.status}`]));
 			userCommandTrace.delete(trace);
+}
+		if (interaction.isButton()) {
+			const commandParts = command.split('home');
+			const coloredCommand = commandParts.length > 1
+				? [...commandParts.slice(0, -1), 'cyan', 'home', ...commandParts.slice(-1)]
+				: [command];
+
+			console.log(await logColor([`${hour}: ${username} is navigating `, ...coloredCommand]));
+
 		}
 		else {
 			console.log(await logColor([`${hour}: ${username} used ${command} - `, `${statusColors[log.status]}`, `${log.status}`]));

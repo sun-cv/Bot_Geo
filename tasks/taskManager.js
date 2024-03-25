@@ -72,7 +72,7 @@ class TaskManager {
 							await runTask();
 						}
 						const updatedInterval = nextExecutionTime(task.schedule);
-						console.log(`next execution time: ${updatedInterval}\n`);
+						console.log(`next execution time: ${updatedInterval}\n\n`);
 					},
 					name: task.name,
 					schedule: intervalLive,

@@ -27,7 +27,7 @@ async function logUserCommand(interaction, log, trace) {
 	}
 	else {
 		command = await constructFullCommand(interaction);
-}
+	}
 	const {
 		category = null,
 		localOutput = null,
@@ -72,8 +72,8 @@ async function logUserCommand(interaction, log, trace) {
 
 			console.log(await logColor([`${context.count} - ${context.time} > ${hour}: ${username} used ${command} - `, `${statusColors[log.status]}`, `${log.status}`]));
 			userCommandTrace.delete(trace);
-}
-		if (interaction.isButton()) {
+		}
+		else if (interaction.isButton()) {
 			const commandParts = command.split('home');
 			const coloredCommand = commandParts.length > 1
 				? [...commandParts.slice(0, -1), 'cyan', 'home', ...commandParts.slice(-1)]

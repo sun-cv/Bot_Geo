@@ -10,6 +10,7 @@ const cooldownButtons = new Collection();
 const cooldownCommands = new Collection();
 
 const DEBUG = false;
+const tracing = false;
 
 module.exports = {
 	name: Events.InteractionCreate,
@@ -130,11 +131,11 @@ module.exports = {
 				const context = userCommandTrace.get(trace);
 				try {
 					if (ephemeral && !share) {
-						console.log(`${context.count} - ${context.time}: ${interaction.member.user.username} deferred ${commandName} - ephemeral`);
+						if (tracing) console.log(`${context.count} - ${context.time}: ${interaction.member.user.username} deferred ${commandName} - ephemeral`);
 						await interactionErrorHandling(interaction.deferReply.bind(interaction, { ephemeral: true }));
 					}
 					else {
-						console.log(`${context.count} - ${context.time}: ${interaction.member.user.username} deferred ${commandName}`);
+						if (tracing)console.log(`${context.count} - ${context.time}: ${interaction.member.user.username} deferred ${commandName}`);
 						await interactionErrorHandling(interaction.deferReply.bind(interaction));
 					}
 				}

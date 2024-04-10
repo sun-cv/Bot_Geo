@@ -1,4 +1,7 @@
-function addRoleToUser(interaction, roleName) {
+function addRoleToUser() {
+
+	const interaction = this.interaction.discord;
+	const roleName = this.command.role;
 
 	const foundRole = interaction.guild.roles.cache.find(role => role.name === roleName);
 	// Check if the guild has the role

@@ -8,8 +8,7 @@ async function getCurrentPulls(userId, userAccount, shard) {
 		return currentPulls;
 	}
 	catch (error) {
-		console.log('Error detected in getCurrentPulls');
-		throw error;
+		console.log('Error detected in getCurrentPulls', error);
 	}
 }
 

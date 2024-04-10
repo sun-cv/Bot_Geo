@@ -1,5 +1,6 @@
 const { Collection } = require('discord.js');
 
+
 async function InteractionCooldownHandler(interaction, cooldownCommands) {
 
 	const { member, commandName } = interaction;

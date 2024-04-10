@@ -21,6 +21,7 @@ const {
 	getUserAccounts,
 	getUserAccountsTotal,
 	initializeMercy,
+	userAccountExists,
 	insertUserTracker,
 	insertUserAccount,
 	getShardCount,
@@ -42,6 +43,7 @@ module.exports = {
 	setUser,
 	// Initialization
 	initializeMercy,
+	userAccountExists,
 	// Mercy data input
 	insertUserTracker,
 	insertUserAccount,

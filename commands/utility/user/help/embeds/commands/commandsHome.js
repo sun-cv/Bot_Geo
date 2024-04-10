@@ -1,6 +1,4 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder } = require('discord.js');
-const { logUserCommand, commandLog } = require('../../../../../../utils/index');
-
 
 const commandsHome = new EmbedBuilder()
 	.setColor('#ED8223')
@@ -36,7 +34,7 @@ const addRow = new ActionRowBuilder()
 			.setStyle('Primary'),
 	);
 
-async function sendCommandsHome(interaction) {
+async function sendCommandsHome(interaction, log) {
 
 	if (!interaction) {
 		console.error('Interaction is null or undefined');
@@ -50,18 +48,12 @@ async function sendCommandsHome(interaction) {
 		});
 	}
 	catch (error) {
-		console.log('error detected in Help - send commands home embed.');
-		// Logging
-		commandLog.status = 'failed';
-		commandLog.error = error;
-
-		throw error;
+		log.errorHandling(error);
 	}
 	finally {
-		// Logging
-		commandLog.category = 'Utility';
-		commandLog.output = 'none';
-		logUserCommand(interaction, commandLog);
+		if (interaction.isButton()) {
+			log.finalizeButton();
+		}
 	}
 }
 

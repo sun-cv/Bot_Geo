@@ -1,62 +1,37 @@
 const { SlashCommandBuilder, CommandInteraction } = require('discord.js');
-const { logUserCommand, commandLog, updateAccountLastActive, addRoleToUser, getUserId } = require('../../../utils/index');
-const { identifierEmojis, mercyConditions, initializeMercy, getUserAccounts, getShardCount } = require('../mercyIndex');
+const { getUserId, sendFollowUpDelete } = require('../../../utils/index');
+const { identifierEmojis, mercyConditions, initializeMercy, getShardCount, userAccountExists } = require('../mercyIndex');
 const { autocompleteUserAccounts } = require('../utils/functions/userAutoComplete');
 
 
-async function successCommand(interaction = new CommandInteraction(), trace) {
+async function successCommand(interaction = new CommandInteraction(), log) {
+
+	await log.initiateCommand({ name: 'success', category: 'mercy tracker', role: 'Mercy' });
+
+	let output;
+
+	const userId = log.member.id;
+	const number = interaction.options.getInteger('number');
+	const shard = interaction.options.getString('shard');
+	const doubleEvent = interaction.options.getString('2x');
+
+	const shareSuccess = interaction.options.getString('share') === 'true';
 
 	try {
-
-		/**
-        *  Global constants
-        */
-
-		let shareSuccess = false;
-
-		const number = interaction.options.getInteger('number');
-		const shard = interaction.options.getString('shard');
-		const doubleEvent = interaction.options.getString('2x');
-		const userId = getUserId(interaction);
-
-		/**
-        *  Initialize command
-        */
 
 		// Ensure Mercy tracker exists, if not - Add
 		await initializeMercy(interaction);
 
-		/**
-        *  Success command
-        */
-
-		// User share mercy input
-		const shareInputValue = interaction.options.getString('share');
-		if (shareInputValue === 'true') { shareSuccess = true; }
-
-		/*
-            Define account
-        */
-
-		// User account input
-		const accountInput = interaction.options.getString('account');
-		// Get known accounts
-		const userAccounts = await getUserAccounts(userId);
-		// default user account
-		let userAccount = userAccounts[0].account;
-		// Confirm account exists ;
-		if (userAccounts.some(user => user.account === accountInput)) {
-			userAccount = accountInput;
-		}
-		else if (accountInput !== null) {
-
-			interaction.editReply({ content: `${accountInput} was not found. Check /register list to confirm account details`, ephemeral: true });
-
-			commandLog.status = 'failed';
+		// ensure user account exists, if not - return
+		const userAccount = await userAccountExists(interaction, log);
+		if (!userAccount) {
+			log.returnCommand('denied', 'account does not exist');
 			return;
 		}
 
-		// // Main Command logic
+		/**
+	 	*  main command logic
+	 	*/
 
 		// Fetch the user's current shard count from the database
 		let column;
@@ -101,10 +76,7 @@ async function successCommand(interaction = new CommandInteraction(), trace) {
 		}
 
 		catch (error) {
-			console.log('Error detected in Mercy - success command - fetch shard count');
-			// Logging
-			commandLog.status = 'failed';
-			commandLog.error = error;
+			log.errorHandling(error);
 		}
 
 		// Check if start number is provided
@@ -169,36 +141,18 @@ async function successCommand(interaction = new CommandInteraction(), trace) {
 			shardNameForOutput = 'primal';
 		}
 
-		const output = `You've pulled ${initialCount} ${identifierEmojis[shardNameForOutput]} shards to date <@${interaction.user.id}>.\n \nThe cumulative success chance of pulling a ${championType} from ${number} ${shardNameForOutput.replace('_', ' ')} shards is approximately ${totalSuccessChancePercent.toFixed(2)}%.`;
+		output = `You've pulled ${initialCount} ${identifierEmojis[shardNameForOutput]} shards to date <@${interaction.user.id}>.\n \nThe cumulative success chance of pulling a ${championType} from ${number} ${shardNameForOutput.replace('_', ' ')} shards is approximately ${totalSuccessChancePercent.toFixed(2)}%.`;
 
 		// Send the output
-		interaction.editReply({ content: output, ephemeral: !shareSuccess });
-
-		if (shareSuccess) setTimeout(() => { interaction.deleteReply(); }, 15000);
-
-		// Update last active
-		updateAccountLastActive(userId, userAccount);
-		// Logging
-		commandLog.output = output;
-		commandLog.status = 'success';
+		sendFollowUpDelete(interaction, output, !shareSuccess, 15000);
 		return;
 
 	}
 	catch (error) {
-		console.log('Error detected in Mercy - Success command');
-
-		// Logging
-		commandLog.status = 'failed';
-		commandLog.error = error;
-
-		throw error;
+		log.errorHandling(error);
 	}
 	finally {
-		// Add Mercy role
-		addRoleToUser(interaction, 'Mercy');
-		// Logging
-		commandLog.category = 'Mercy';
-		logUserCommand(interaction, commandLog, trace);
+		log.finalizeCommand(output);
 	}
 }
 
@@ -265,5 +219,5 @@ module.exports = {
 	cooldownCount: 0,
 	subCommand: 'shareSuccess',
 	subCooldownCount: 120,
-
+	trace: true,
 };

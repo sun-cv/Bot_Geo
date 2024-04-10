@@ -1,5 +1,4 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder } = require('discord.js');
-const { logUserCommand, commandLog } = require('../../../../../utils/index');
 
 const commandsHome = new EmbedBuilder()
 	.setColor('#ED8223')
@@ -25,7 +24,7 @@ const addRow = new ActionRowBuilder()
 			.setStyle('Secondary'),
 	);
 
-async function sendHelpRules(interaction) {
+async function sendHelpRules(interaction, log) {
 
 	if (!interaction) {
 		console.error('Interaction is null or undefined');
@@ -41,18 +40,12 @@ async function sendHelpRules(interaction) {
 
 	}
 	catch (error) {
-		console.log('error detected in Help - send rules embed.');
-		// Logging
-		commandLog.status = 'failed';
-		commandLog.error = error;
-
-		throw error;
+		log.errorHandling(error);
 	}
 	finally {
-		// Logging
-		commandLog.category = 'Utility';
-		commandLog.output = 'none';
-		logUserCommand(interaction, commandLog);
+		if (interaction.isButton()) {
+			log.finalizeButton();
+		}
 	}
 
 

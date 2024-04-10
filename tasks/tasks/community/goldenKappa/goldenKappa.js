@@ -2,7 +2,8 @@ const { guildId } = require('../../../../config.json');
 const { newTimestamp } = require('../../../../utils/functions/timeKeeping/newTimestamp.js');
 const { db } = require('../../../../database/utils/databaseIndex.js');
 
-async function goldenKappa(client) {
+async function goldenKappa(task, client) {
+
 	try {
 
 		// Get Guild
@@ -57,8 +58,7 @@ async function goldenKappa(client) {
 		}
 	}
 	catch (error) {
-		console.error('Error in goldenKappa:', error);
-		throw error;
+		task.errorHandling(error);
 	}
 }
 

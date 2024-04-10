@@ -26,7 +26,7 @@ async function logUserCommand(interaction, log, trace) {
 		command = interaction.customId;
 	}
 	else {
-		command = await constructFullCommand(interaction);
+		command = constructFullCommand(interaction);
 	}
 	const {
 		category = null,
@@ -80,7 +80,6 @@ async function logUserCommand(interaction, log, trace) {
 				: [command];
 
 			console.log(await logColor([`${hour}: ${username} is navigating `, ...coloredCommand]));
-
 		}
 		else {
 			console.log(await logColor([`${hour}: ${username} used ${command} - `, `${statusColors[log.status]}`, `${log.status}`]));

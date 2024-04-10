@@ -1,6 +1,4 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder } = require('discord.js');
-const { logUserCommand, commandLog } = require('../../../../../../../utils/index');
-
 
 const success = new EmbedBuilder()
 	.setColor('#ED8223')
@@ -38,7 +36,9 @@ const addRow = new ActionRowBuilder()
 			.setStyle('Primary'),
 	);
 
-async function sendMercySuccess(interaction) {
+async function sendMercySuccess(interaction, log) {
+
+	log.initiateCommand({ name: 'mercy-success', category: 'help' });
 
 	if (!interaction) {
 		console.error('Interaction is null or undefined');
@@ -54,18 +54,12 @@ async function sendMercySuccess(interaction) {
 
 	}
 	catch (error) {
-		console.log('error detected in Help - send success embed.');
-		// Logging
-		commandLog.status = 'failed';
-		commandLog.error = error;
-
-		throw error;
+		log.errorHandling(error);
 	}
 	finally {
-		// Logging
-		commandLog.category = 'Utility';
-		commandLog.output = 'none';
-		logUserCommand(interaction, commandLog);
+		if (interaction.isButton()) {
+			log.finalizeButton();
+		}
 	}
 
 

@@ -1,6 +1,4 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder } = require('discord.js');
-const { logUserCommand, commandLog } = require('../../../../../../../utils/index');
-
 
 const reset = new EmbedBuilder()
 	.setColor('#ED8223')
@@ -39,7 +37,9 @@ const addRow = new ActionRowBuilder()
 			.setStyle('Success'),
 	);
 
-async function sendMercyReset(interaction) {
+async function sendMercyReset(interaction, log) {
+
+	log.initiateCommand({ name: 'mercy-reset', category: 'help' });
 
 	if (!interaction) {
 		console.error('Interaction is null or undefined');
@@ -55,20 +55,13 @@ async function sendMercyReset(interaction) {
 
 	}
 	catch (error) {
-		console.log('error detected in Help - send reset embed.');
-		// Logging
-		commandLog.status = 'failed';
-		commandLog.error = error;
-
-		throw error;
+		log.errorHandling(error);
 	}
 	finally {
-		// Logging
-		commandLog.category = 'Utility';
-		commandLog.output = 'none';
-		logUserCommand(interaction, commandLog);
+		if (interaction.isButton()) {
+			log.finalizeButton();
+		}
 	}
-
 
 }
 

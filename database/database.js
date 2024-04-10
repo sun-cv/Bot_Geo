@@ -22,12 +22,15 @@ db.all = util.promisify(db.all);
 
 async function createDatabase() {
 
-	await db.run (`CREATE TABLE IF NOT EXISTS user (
+	await db.run(`CREATE TABLE IF NOT EXISTS member (
+	guild_id TEXT, 
 	user_id TEXT PRIMARY KEY,
 	username TEXT NOT NULL,
 	accounts INTEGER DEFAULT 0,
 	last_command TEXT,
 	command_count INTEGER DEFAULT 0,
+	button_count INTEGER DEFAULT 0,
+	message_count INTEGER DEFAULT 0,
 	error_count INTEGER DEFAULT 0,
 	last_active TEXT,
 	registration_date TEXT
@@ -38,14 +41,14 @@ async function createDatabase() {
 	});
 
 	// Create an index on the user_id column
-	await db.run('CREATE INDEX IF NOT EXISTS idx_user_id ON user (user_id);', (error) => {
+	await db.run('CREATE INDEX IF NOT EXISTS idx_user_id ON member (user_id);', (error) => {
 		if (error) {
 			console.error(error.message);
 		}
 	});
 
 	// Add a unique constraint to the user_id column
-	await db.run('CREATE UNIQUE INDEX IF NOT EXISTS uq_user_id ON user (user_id);', (error) => {
+	await db.run('CREATE UNIQUE INDEX IF NOT EXISTS uq_user_id ON member (user_id);', (error) => {
 		if (error) {
 			console.error(error.message);
 		}
@@ -55,9 +58,9 @@ async function createDatabase() {
  	* COMMAND LOG
  	*/
 
-	await db.run (`CREATE TABLE IF NOT EXISTS user_command_log (
+	await db.run(`CREATE TABLE IF NOT EXISTS command_log (
+	guild_id TEXT NOT NULL,
 	channel_id TEXT NOT NULL,
-	message_id TEXT,
 	user_id TEXT NOT NULL,
 	username TEXT NOT NULL,
 	category TEXT,
@@ -65,9 +68,9 @@ async function createDatabase() {
 	output TEXT DEFAULT none,
 	status TEXT DEFAULT pending,
 	error TEXT DEFAULT none,
+	response_time TEXT,
 	time TEXT,
-	timestamp TEXT NOT NULL,
-	FOREIGN KEY(user_id) REFERENCES user(user_id)
+	timestamp TEXT NOT NULL
 )`, (error) => {
 		if (error) {
 			console.error(error.message);
@@ -78,33 +81,23 @@ async function createDatabase() {
  	* MERCY ACCOUNTS
  	*/
 
-	await db.run (`CREATE TABLE IF NOT EXISTS mercy_accounts (
+	await db.run(`CREATE TABLE IF NOT EXISTS mercy_accounts (
 	user_id TEXT NOT NULL,
 	username TEXT NOT NULL,
 	account TEXT,
 	last_active TEXT,
 	registration_date TEXT,
-	PRIMARY KEY(user_id, username, account),
-	FOREIGN KEY(user_id) REFERENCES user(user_id)
+	PRIMARY KEY(user_id, username, account)
 )`, (error) => {
 		if (error) {
 			console.error(error.message);
 		}
 	});
-
-	// Create an index on the user_id column
-	await db.run('CREATE INDEX IF NOT EXISTS idx_user_id_mercy_accounts ON mercy_accounts (user_id);', (error) => {
-		if (error) {
-			console.error(error.message);
-		}
-	});
-
-
 	/**
  	* MERCY TRACKER
  	*/
 
-	await db.run (`CREATE TABLE IF NOT EXISTS mercy_tracker (
+	await db.run(`CREATE TABLE IF NOT EXISTS mercy_tracker (
 	user_id TEXT NOT NULL,
 	username TEXT NOT NULL,
 	account TEXT NOT NULL,
@@ -112,62 +105,8 @@ async function createDatabase() {
 	count INTEGER DEFAULT 0,
 	mythical_count INTEGER DEFAULT 0,
 	legendary_count INTEGER DEFAULT 0,
-	PRIMARY KEY(user_id, account, shard),
-	FOREIGN KEY(user_id) REFERENCES user(user_id)
+	PRIMARY KEY(user_id, account, shard)
   )`, (error) => {
-		if (error) {
-			console.error(error.message);
-		}
-	});
-
-	// Create an index on the user_id column
-	await db.run('CREATE INDEX IF NOT EXISTS idx_user_id_mercy_tracker ON mercy_tracker (user_id);', (error) => {
-		if (error) {
-			console.error(error.message);
-		}
-	});
-
-
-	/**
- 	*  ERROR LOG
- 	*/
-
-	await db.run (`CREATE TABLE IF NOT EXISTS error_log (
-	error_id INTEGER PRIMARY KEY AUTOINCREMENT,
-	channel_id TEXT,
-	user_id TEXT,
-	username TEXT,
-	command TEXT,
-	error_name TEXT,
-	error_message TEXT,
-	stack_trace TEXT,
-	interaction_args TEXT,
-	time TEXT,
-	timestamp TEXT NOT NULL,
-	FOREIGN KEY(user_id) REFERENCES user(user_id)
-)`, (error) => {
-		if (error) {
-			console.error(error.message);
-		}
-	});
-
-	/**
- 	* MESSAGE ERROR LOG
-	 */
-
-	await db.run (`CREATE TABLE IF NOT EXISTS message_error_log (
-	error_id INTEGER PRIMARY KEY AUTOINCREMENT,
-	channel_id TEXT,
-	user_id TEXT,
-	username TEXT,
-	content TEXT,
-	error_name TEXT,
-	error_message TEXT,
-	stack_trace TEXT,
-	time TEXT,
-	timestamp TEXT NOT NULL,
-	FOREIGN KEY(user_id) REFERENCES user(user_id)
-)`, (error) => {
 		if (error) {
 			console.error(error.message);
 		}
@@ -177,13 +116,16 @@ async function createDatabase() {
 	 * TASKS
 	 */
 
-	await db.run (`CREATE TABLE IF NOT EXISTS tasks (
+	await db.run(`CREATE TABLE IF NOT EXISTS tasks (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	name TEXT,
 	schedule TEXT NOT NULL,
-	arguments,
+	arguments TEXT,
+	scheduled_at TEXT,
 	last_execution TEXT,
 	next_execution TEXT,
+	failed TEXT,
+	response_time TEXT,
 	error TEXT,
 	description TEXT,
 	filepath TEXT,
@@ -195,19 +137,15 @@ async function createDatabase() {
 		}
 	});
 
-	/**
-	* TASKS ERROR LOG
-	*/
 
-	await db.run (`CREATE TABLE IF NOT EXISTS tasks_error_log (
-	error_id INTEGER PRIMARY KEY AUTOINCREMENT,
-	task TEXT,
-	content TEXT,
-	scheduled_time TEXT,
-	error_name TEXT,
-	error_message TEXT,
-	stack_trace TEXT,
-	time TEXT,
+	/**
+ 	* Golden Kappa
+ 	*/
+
+	await db.run(`CREATE TABLE IF NOT EXISTS golden_kappa (
+	kappa INTEGER PRIMARY KEY AUTOINCREMENT,
+	user_id TEXT,
+	username TEXT,
 	timestamp TEXT NOT NULL
 )`, (error) => {
 		if (error) {
@@ -217,15 +155,83 @@ async function createDatabase() {
 
 
 	/**
- 	* Golden Kappa
+ 	*  ERROR LOG
  	*/
 
-	await db.run (`CREATE TABLE IF NOT EXISTS golden_kappa (
-	kappa INTEGER PRIMARY KEY AUTOINCREMENT,
-	user_id TEXT,
-	username TEXT,
-	timestamp TEXT NOT NULL
-)`, (error) => {
+	await db.run(`CREATE TABLE IF NOT EXISTS error_log_command (
+		error_id INTEGER PRIMARY KEY AUTOINCREMENT,
+		guild_id,
+		channel_id TEXT,
+		user_id TEXT,
+		username TEXT,
+		command TEXT,
+		error_name TEXT,
+		error_message TEXT,
+		stack_trace TEXT,
+		interaction_args TEXT,
+		response_time TEXT,
+		time TEXT,
+		timestamp TEXT NOT NULL
+	)`, (error) => {
+		if (error) {
+			console.error(error.message);
+		}
+	});
+
+	await db.run(`CREATE TABLE IF NOT EXISTS error_log_button (
+		error_id INTEGER PRIMARY KEY AUTOINCREMENT,
+		guild_id,
+		channel_id TEXT,
+		user_id TEXT,
+		username TEXT,
+		custom_id TEXT,
+		error_name TEXT,
+		error_message TEXT,
+		stack_trace TEXT,
+		interaction_args TEXT,
+		response_time TEXT,
+		time TEXT,
+		timestamp TEXT NOT NULL
+	)`, (error) => {
+		if (error) {
+			console.error(error.message);
+		}
+	});
+
+	await db.run(`CREATE TABLE IF NOT EXISTS error_log_message (
+		error_id INTEGER PRIMARY KEY AUTOINCREMENT,
+		guild_id,
+		channel_id TEXT,
+		user_id TEXT,
+		username TEXT,
+		content TEXT,
+		error_name TEXT,
+		error_message TEXT,
+		stack_trace TEXT,
+		interaction_args TEXT,
+		response_time TEXT,
+		time TEXT,
+		timestamp TEXT NOT NULL
+	)`, (error) => {
+		if (error) {
+			console.error(error.message);
+		}
+	});
+
+
+	await db.run(`CREATE TABLE IF NOT EXISTS error_log_task (
+				error_id INTEGER PRIMARY KEY AUTOINCREMENT,
+				task TEXT,
+				scheduled_at TEXT,
+				next_execution TEXT,
+				failed_at TEXT,
+				error_name TEXT,
+				error_message TEXT,
+				stack_trace TEXT,
+				response_time TEXT,
+				time TEXT,
+				timestamp TEXT NOT NULL
+			)`, (error) => {
 		if (error) {
 			console.error(error.message);
 		}

@@ -15,11 +15,11 @@ const backupDirs = [
 ];
 
 // Backup the database
-async function weeklyBackup() {
+async function weeklyBackup(task) {
 	try {
 		await createBackupDirectories (backupDirs);
 
-		const timestamp = await newTimestamp('hour');
+		const timestamp = newTimestamp('hour');
 
 		const fileName = await getBackupFileName();
 		const backupPathD = path.join(backupDirD, fileName);
@@ -33,8 +33,7 @@ async function weeklyBackup() {
 
 	}
 	catch (error) {
-		console.error('Error detected in weeklyBackup:', error.message);
-		throw error;
+		task.errorHandling(error);
 	}
 }
 

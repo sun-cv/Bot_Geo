@@ -5,8 +5,9 @@ module.exports = {
 	customId: 'help-commands-search',
 	deferUpdate: true,
 	cooldown: -1,
+	trace: true,
 
-	execute: async (interaction) => {
-		sendCommandsSearch(interaction);
+	execute: async (interaction, log) => {
+		sendCommandsSearch(interaction, log);
 	},
 };

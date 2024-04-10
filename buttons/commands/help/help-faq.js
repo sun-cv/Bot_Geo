@@ -5,8 +5,9 @@ module.exports = {
 	customId: 'help-faq',
 	deferUpdate: true,
 	cooldown: -1,
+	trace: true,
 
-	execute: async (interaction) => {
-		sendHelpFaq(interaction);
+	execute: async (interaction, log) => {
+		sendHelpFaq(interaction, log);
 	},
 };

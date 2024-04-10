@@ -1,49 +1,51 @@
 const { db } = require('../../../../database/database');
 
-async function cleanLogs() {
+const sevenDays = new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString();
+const ninetyDays = new Date(Date.now() - 1000 * 60 * 60 * 24 * 90).toISOString();
+
+const tableToTimestamp = {
+	'command_log': { timestamp: 'timestamp', date: sevenDays },
+
+	'error_log_command': { timestamp: 'timestamp', date: sevenDays },
+	'error_log_button': { timestamp: 'timestamp', date: sevenDays },
+	'error_log_message': { timestamp: 'timestamp', date: sevenDays },
+	'error_log_task': { timestamp: 'timestamp', date: sevenDays },
+
+	'mercy_accounts': { timestamp: 'last_active', date: ninetyDays },
+};
+
+
+async function cleanTable(tableName, dateColumnName, date) {
+	try {
+		const countResult = await db.get(`SELECT COUNT(*) as count FROM ${tableName} WHERE datetime(${dateColumnName}) < datetime(?)`, date);
+		if (countResult.count > 0) {
+			console.log(`${countResult.count} rows will be deleted from ${tableName}`);
+			await db.run(`DELETE FROM ${tableName} WHERE datetime(${dateColumnName}) < datetime(?)`, date);
+		}
+		return countResult.count;
+	}
+	catch (error) {
+		console.log(error);
+	}
+}
+
+async function cleanLogs(task) {
 	try {
 
 		const log = {};
 
-		const sevenDays = new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString();
-		const ninetyDays = new Date(Date.now() - 1000 * 60 * 60 * 24 * 90).toISOString();
-
-		// Clean user_command_log
-		log.userCommandLog = await db.get('SELECT COUNT(*) as count FROM user_command_log WHERE datetime(timestamp) < datetime(?)', sevenDays);
-		if (log.userCommandLog.count > 0) {
-			console.log(`${log.userCommandLog.count} rows will be deleted from user_command_log`);
-			await db.run('DELETE FROM user_command_log WHERE datetime(timestamp) < datetime(?)', sevenDays);
+		for (const tableName of Object.keys(tableToTimestamp)) {
+			const { timestamp, date } = tableToTimestamp[tableName];
+			log[tableName] = await cleanTable(tableName, timestamp, date);
 		}
 
-		// Clean error_logs
-		log.error_log = await db.get('SELECT COUNT(*) as count FROM error_log WHERE datetime(timestamp) < datetime(?)', sevenDays);
-		if (log.error_log.count > 0) {
-			console.log(`${log.error_log.count} rows will be deleted from error_log`);
-			await db.run('DELETE FROM error_log WHERE datetime(timestamp) < datetime(?)', sevenDays);
-		}
-		log.tasks_error_log = await db.get('SELECT COUNT(*) as count FROM tasks_error_log WHERE datetime(timestamp) < datetime(?)', sevenDays);
-		if (log.tasks_error_log.count > 0) {
-			console.log(`${log.tasks_error_log.count} rows will be deleted from tasks_error_log`);
-			await db.run('DELETE FROM tasks_error_log WHERE datetime(timestamp) < datetime(?)', sevenDays);
-		}
-		log.message_error_log = await db.get('SELECT COUNT(*) as count FROM message_error_log WHERE datetime(timestamp) < datetime(?)', sevenDays);
-		if (log.message_error_log.count > 0) {
-			console.log(`${log.message_error_log.count} rows will be deleted from message_error_log`);
-			await db.run('DELETE FROM message_error_log WHERE datetime(timestamp) < datetime(?)', sevenDays);
-		}
-		// Clean inactive_users
-		log.mercy_Tracker = await db.get('SELECT COUNT(*) as count FROM mercy_tracker WHERE (user_id, account) IN (SELECT user_id, account FROM mercy_accounts WHERE last_active < ?)', ninetyDays);
+		log.mercy_Tracker = (await db.get('SELECT COUNT(*) as count FROM mercy_tracker WHERE (user_id, account) IN (SELECT user_id, account FROM mercy_accounts WHERE last_active < ?)', ninetyDays)).count || 0;
 		if (log.mercy_Tracker.count > 0) {
 			console.log(`${log.mercy_Tracker.count} rows will be deleted from mercy_tracker`);
 			await db.run('DELETE FROM mercy_tracker WHERE (user_id, account) IN (SELECT user_id, account FROM mercy_accounts WHERE last_active < ?)', ninetyDays);
 		}
-		log.mercy_accounts = await db.get('SELECT COUNT(*) as count FROM mercy_accounts WHERE last_active < ?', ninetyDays);
-		if (log.mercy_accounts.count > 0) {
-			console.log(`${log.mercy_accounts.count} rows will be deleted from mercy_accounts`);
-			await db.run('DELETE FROM mercy_accounts WHERE last_active < ?', ninetyDays);
-		}
 
-		const totalCount = Object.values(log).reduce((total, logType) => total + logType.count, 0);
+		const totalCount = Object.values(log).reduce((total, count) => total + count, 0);
 
 		if (totalCount === 0) {
 			console.log('No logs to clear');
@@ -51,10 +53,15 @@ async function cleanLogs() {
 		else if (totalCount > 0) {
 			console.log('Logs cleaned successfully:', totalCount);
 		}
+
 	}
 	catch (error) {
-		console.log('Error detected in cleanLogs');
-		throw error;
+		if (task) {
+			task.errorHandling(error);
+		}
+
+		console.log(error);
+
 	}
 }
 
@@ -64,3 +71,4 @@ module.exports = {
 	task: true,
 
 };
+

@@ -11,7 +11,7 @@ async function insertUserAccount(userId, username, account) {
 		// Insert account into mercy_accounts
 		await db.run('INSERT INTO mercy_accounts (user_id, username, account, registration_date) VALUES (?, ?, ?, ?)', [userId, username, account, timestamp]);
 		// add +1 to user accounts
-		await db.run('UPDATE user SET accounts = accounts + 1 WHERE user_id = ?', userId);
+		await db.run('UPDATE member SET accounts = accounts + 1 WHERE user_id = ?', userId);
 	}
 	catch (error) {
 		console.log('Error detected in InsertUserAccount');

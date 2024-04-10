@@ -1,28 +1,21 @@
 const { SlashCommandBuilder, CommandInteraction } = require('discord.js');
-const { db, transaction, beginTransaction, commitTransaction, rollbackTransaction } = require('../../../database/utils/databaseIndex');
-const { logUserCommand, commandLog, updateAccountLastActive, addRoleToUser, getUserId, getUsername } = require('../../../utils/index');
+const { db } = require('../../../database/utils/databaseIndex');
+const { updateAccountLastActive, getUserId, sendFollowUpDelete } = require('../../../utils/index');
 const { getUserAccounts, initializeMercy, insertUserTracker, insertUserAccount, getUserAccountsTotal } = require('../utils/functionIndex');
 const { getAutoCompleteUserAccounts, updateAutoCompleteUserAccounts, autocompleteUserAccounts } = require('../utils/functions/userAutoComplete');
 
 
-async function registerCommand(interaction = new CommandInteraction(), trace) {
+async function registerCommand(interaction = new CommandInteraction(), log) {
+
+	await log.initiateCommand({ name: 'register', category: 'mercy tracker', role: 'Mercy' });
+
+	const userId = log.member.id;
+	const username = log.member.name;
+
+	const altLimit = 5;
+
 
 	try {
-
-		/**
- 		* Global Constants
- 		*/
-
-		// User constants
-		const userId = getUserId(interaction);
-		const username = getUsername(interaction);
-
-		// Alt Limit
-		const altLimit = 5;
-
-		/**
-		* Command Initialization
-		*/
 
 		// Ensure Mercy tracker exists, if not - Add
 		await initializeMercy(interaction);
@@ -51,38 +44,32 @@ async function registerCommand(interaction = new CommandInteraction(), trace) {
 					// Confirm account exists - Deny
 					if (userAccounts.some(user => user.account === accountToAdd)) {
 
-						interaction.editReply({ content: `Account **${accountToAdd}** already exists`, ephemeral: true });
-
-						return;
+						interaction.followUp({ content: `Account **${accountToAdd}** already exists`, ephemeral: true });
+						log.returnCommand('denied', 'account already exists'); return;
 					}
 
 					// Confirm account limit - Deny
 					else if (userTotal.accounts >= altLimit) {
 
-						interaction.editReply({ content: 'You\'ve reached the maximum number of 5 alts', ephemeral:true });
-
-						return;
+						interaction.followUp({ content: 'You\'ve reached the maximum number of 5 alts', ephemeral:true });
+						log.returnCommand('denied', 'reached alt limit'); return;
 					}
 
-					// Insert new user account
 					else {
 						// Update Mercy Accounts
 						await insertUserAccount(userId, username, accountToAdd);
 						// Update Mercy Tracker
 						await insertUserTracker(userId, username, accountToAdd);
-						// Update last active - Has transaction
+						// Update last active
 						await updateAccountLastActive(userId, accountToAdd);
 
-						interaction.editReply({ content: `Account **${accountToAdd}** was successfully registered.`, ephemeral: true });
-
-						commandLog.status = 'success';
+						interaction.followUp({ content: `Account **${accountToAdd}** was successfully registered.`, ephemeral: true });
+						log.finalizeCommand(); return;
 					}
 				}
 				catch (error) {
-					console.log('Error detected in add account.');
-					throw error;
+					log.errorHandling(error);
 				}
-
 				break;
 			}
 
@@ -93,27 +80,21 @@ async function registerCommand(interaction = new CommandInteraction(), trace) {
 			case 'list': {
 				try {
 
-					// Return all current user accounts
 					let listAccounts = '';
 
-					// Confirm array
-					if (Array.isArray(userAccounts)) {
 					// Create output
+					if (Array.isArray(userAccounts)) {
 						userAccounts.forEach((row) => {
 							listAccounts += `- **${row.account}**\n`;
 						});
 					}
 
-					await interaction.editReply({ content: `You have registered the following accounts:\n${listAccounts}`, ephemeral: true });
-
-					commandLog.status = 'success';
-
+					interaction.followUp({ content: `You have registered the following accounts:\n${listAccounts}`, ephemeral: true });
+					log.finalizeCommand(); return;
 				}
 				catch (error) {
-					console.log('Error detected in list account.');
-					throw error;
+					log.errorHandling(error);
 				}
-
 				break;
 			}
 
@@ -123,25 +104,15 @@ async function registerCommand(interaction = new CommandInteraction(), trace) {
 
 			case 'remove': {
 				try {
-					// WRITES begin transaction
-					await beginTransaction();
 
-					// Pull user account input
 					const accountToDelete = interaction.options.getString('account');
-
-					// Pull user confirmation
-					const confirmationString = interaction.options.getString('confirm');
-					const confirmation = confirmationString === 'true' ? true : false;
+					const confirmation = interaction.options.getString('confirm') === 'true';
 
 					// If cancel - return
 					if (!confirmation) {
 
-						interaction.editReply({ content: 'Account removal canceled', ephemeral: true });
-
-						// Rollback
-						await rollbackTransaction();
-						commandLog.status = 'cancel';
-						return;
+						interaction.followUp({ content: 'Account removal canceled', ephemeral: true });
+						log.returnCommand('denied', 'did not confirm deletion');
 					}
 
 					// Check account exists
@@ -149,86 +120,45 @@ async function registerCommand(interaction = new CommandInteraction(), trace) {
 
 						// Check account is main - Deny
 						if (confirmation && accountToDelete === 'main') {
-							// Rollback
-							await rollbackTransaction();
-							interaction.editReply({ content: 'You cannot delete your main account', ephemeral: true });
-							return;
+
+							interaction.followUp({ content: 'You cannot delete your main account', ephemeral: true });
+							log.returnCommand('denied', 'cannot delete main account');
 						}
 						// And user confirms - Delete
 						else if (confirmation && accountToDelete !== 'main') {
-
+							try {
 							// Delete all account data
-							await db.run('DELETE FROM mercy_tracker WHERE user_id = ? AND account = ?', [userId, accountToDelete]);
-							await db.run('DELETE FROM mercy_accounts WHERE user_id = ? AND account = ?', [userId, accountToDelete]);
+								await db.run('DELETE FROM mercy_tracker WHERE user_id = ? AND account = ?', [userId, accountToDelete]);
+								await db.run('DELETE FROM mercy_accounts WHERE user_id = ? AND account = ?', [userId, accountToDelete]);
 
-							// Update user account number
-							await db.run('UPDATE user SET accounts = accounts - 1 WHERE user_id = ?', userId);
-							// Commit
-							await commitTransaction();
+								// Update user account number
+								await db.run('UPDATE member SET accounts = accounts - 1 WHERE user_id = ?', userId);
 
-							interaction.editReply({ content: `account ${accountToDelete} has been removed succesfully.`, ephemeral: true });
-							// Update auto complete object
-							await updateAutoCompleteUserAccounts();
-							// Log Status
-							commandLog.status = 'success';
-							return;
+								interaction.followUp({ content: `account ${accountToDelete} has been removed succesfully.`, ephemeral: true });
+								// Update auto complete object
+								await updateAutoCompleteUserAccounts();
+								log.finalizeCommand();
+							}
+							catch (error) {
+								log.errorHandling(error);
+							}
 						}
-						// Else - Deny
-						else {
-							// Rollback
-							await rollbackTransaction();
-
-							interaction.editReply({ content: `an error occured removing ${accountToDelete}.`, ephemeral: true });
-							// Log Status
-							commandLog.status = 'failed';
-							return;
-						}
-					}
-					// If account does not exist - Deny
-					else {
-						// Rollback
-						await rollbackTransaction();
-
-						interaction.editReply({ content: `${accountToDelete} was not found.\n\nCheck /register list to confirm account details.`, ephemeral: true });
-						// Log Status
-						commandLog.status = 'failed';
 					}
 					break;
 				}
 				catch (error) {
-					if (transaction.status) {
-						// Rollback
-						await rollbackTransaction();
-					}
-					throw error;
+					log.errorHandling(error);
 				}
 			}
 			}
-
 		}
 	}
 	catch (error) {
-		if (transaction.status) {
-			// Rollback
-			await rollbackTransaction();
-		}
-		console.log('Error detected in Mercy - Register command');
-
-		// Logging
-		commandLog.status = 'failed';
-		commandLog.error = error;
-
-		throw error;
+		log.errorHandling(error);
 	}
 	finally {
-		// Add mercy role to user
-		addRoleToUser(interaction, 'Mercy');
-		// Update autocomplete
 		getAutoCompleteUserAccounts();
-		// Logging
-		commandLog.category = 'Mercy';
-		commandLog.output = 'none';
-		logUserCommand(interaction, commandLog, trace);
+		log.finalizeCommand();
 	}
 }
 
@@ -278,8 +208,9 @@ module.exports = {
 	},
 	execute: registerCommand,
 	command: true,
-	deferReply: true,
+	defer: true,
 	moderator: false,
 	maintenance: false,
 	ephemeral: true,
+	trace: true,
 };

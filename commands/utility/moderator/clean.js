@@ -1,8 +1,8 @@
 const { SlashCommandBuilder, CommandInteraction } = require('discord.js');
-const { logUserCommand, commandLog } = require('../../../utils/index');
 
+async function cleanCommand(interaction = new CommandInteraction(), log) {
 
-async function cleanCommand(interaction = new CommandInteraction()) {
+	log.initiateCommand({ name: 'clean', category: 'utility' });
 
 	try {
 
@@ -18,23 +18,14 @@ async function cleanCommand(interaction = new CommandInteraction()) {
 				interaction.editReply({ content : `Deleted ${deletedMessages.size} messages!`, ephemeral : true });
 			});
 
-		commandLog.status = 'success';
 		return;
 
 	}
 	catch (error) {
-
-		interaction.editReply({ content: 'There was an error trying to delete messages. Make sure the messages are not older than 14 days.', ephemeral: true });
-
-		commandLog.status = 'failed';
-		commandLog.error = error;
-		commandLog.output = 'none';
-		throw error;
-
+		log.errorHandling(error);
 	}
 	finally {
-		commandLog.category = 'Utility';
-		logUserCommand(interaction, commandLog);
+		log.finalizeCommand();
 	}
 }
 
@@ -54,5 +45,6 @@ module.exports = {
 	moderator: true,
 	maintenance: false,
 	ephemeral: true,
+	trace: true,
 
 };

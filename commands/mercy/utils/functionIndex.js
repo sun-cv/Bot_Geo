@@ -5,6 +5,7 @@ const { getShardCount } = require('./functions/database/readFunctions/getShardCo
 
 // Initialization
 const { initializeMercy } = require('./functions/initializeMercy');
+const { userAccountExists } = require('./functions/userAccountExists');
 
 // Mercy data input
 const { insertUserTracker } = require('./functions/database/writeFunctions/insertUserTracker');
@@ -18,6 +19,7 @@ module.exports = {
 	getUserAccountsTotal,
 	// Initialization
 	initializeMercy,
+	userAccountExists,
 	// Mercy data input
 	insertUserTracker,
 	insertUserAccount,

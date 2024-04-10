@@ -4,8 +4,9 @@ module.exports = {
 	customId: 'help-mercy-pull',
 	deferUpdate: true,
 	cooldown: -1,
+	trace: true,
 
-	execute: async (interaction) => {
-		sendMercyPull(interaction);
+	execute: async (interaction, log) => {
+		sendMercyPull(interaction, log);
 	},
 };

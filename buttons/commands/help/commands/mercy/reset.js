@@ -4,8 +4,9 @@ module.exports = {
 	customId: 'help-mercy-reset',
 	deferUpdate: true,
 	cooldown: -1,
+	trace: true,
 
-	execute: async (interaction) => {
-		sendMercyReset(interaction);
+	execute: async (interaction, log) => {
+		sendMercyReset(interaction, log);
 	},
 };

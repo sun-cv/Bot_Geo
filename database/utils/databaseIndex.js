@@ -9,7 +9,7 @@ const { commitTransaction } = require('./functions/transactions/commit');
 const { rollbackTransaction } = require('./functions/transactions/rollback');
 
 // Confirms user exists, if not adds - (userId, username)
-const { ensureUserExists } = require('../../utils/logging/activateUpdateUser');
+const { ensureUserExists } = require('../utils/logging/activateUpdateUser');
 
 module.exports = {
 	// Database

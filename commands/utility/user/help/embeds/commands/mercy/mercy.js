@@ -1,5 +1,4 @@
 const { EmbedBuilder, ActionRowBuilder, ButtonBuilder } = require('discord.js');
-const { logUserCommand, commandLog } = require('../../../../../../../utils/index');
 
 const codeField = '```/mercy share```';
 
@@ -41,7 +40,9 @@ const addRow = new ActionRowBuilder()
 			.setStyle('Success'),
 	);
 
-async function sendMercy(interaction) {
+async function sendMercy(interaction, log) {
+
+	log.initiateCommand({ name: 'mercy-mercy', category: 'help' });
 
 	if (!interaction) {
 		console.error('Interaction is null or undefined');
@@ -57,18 +58,12 @@ async function sendMercy(interaction) {
 
 	}
 	catch (error) {
-		console.log('error detected in Help - send home embed.');
-		// Logging
-		commandLog.status = 'failed';
-		commandLog.error = error;
-
-		throw error;
+		log.errorHandling(error);
 	}
 	finally {
-		// Logging
-		commandLog.category = 'Utility';
-		commandLog.output = 'none';
-		logUserCommand(interaction, commandLog);
+		if (interaction.isButton()) {
+			log.finalizeButton();
+		}
 	}
 
 

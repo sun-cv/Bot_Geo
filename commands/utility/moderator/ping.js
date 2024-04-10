@@ -1,9 +1,8 @@
 const { SlashCommandBuilder, CommandInteraction } = require('discord.js');
-const { logUserCommand, commandLog } = require('../../../utils/index');
 
-let output;
+async function pingCommand(interaction = new CommandInteraction(), log) {
 
-async function pingCommand(interaction = new CommandInteraction()) {
+	log.initiateCommand({ name: 'ping', category: 'utility' });
 
 	try {
 
@@ -28,15 +27,12 @@ async function pingCommand(interaction = new CommandInteraction()) {
 		if (hasRequiredRole && isCorrectCategory && isValidRole) {
 
 			interaction.editReply({ content: `${pingedRole} ${message}`, allowedMentions: { roles: [pingedRole.id] }, fetchReply: true });
-
-			commandLog.status = 'success';
 			return;
-
 		}
 		else {
 			let errorMessage = '';
 			if (!hasRequiredRole) {
-				errorMessage += '<:GeoNo:1197290091203280906>You do not have permission to use this command.\n';
+				errorMessage += '<:GeoNo:1197290091203280906> You do not have permission to use this command.\n';
 			}
 			else {
 				if (!isCorrectCategory) {
@@ -51,27 +47,13 @@ async function pingCommand(interaction = new CommandInteraction()) {
 			if (errorMessage) {
 				interaction.editReply({ content: errorMessage, ephemeral: true });
 			}
-
-			output = `${message}`;
-			commandLog.status = 'denied';
-
-			return;
 		}
 	}
 	catch (error) {
-		console.log('Error detected in Mercy - Mercy command');
-
-		// Logging
-		commandLog.status = 'failed';
-		commandLog.error = error;
-
-		throw error;
+		log.errorHandling(error);
 	}
 	finally {
-		// Logging
-		commandLog.category = 'Utility';
-		commandLog.output = output;
-		logUserCommand(interaction, commandLog);
+		log.finalizeCommand();
 	}
 }
 
@@ -93,4 +75,5 @@ module.exports = {
 	moderator: false,
 	maintenance: false,
 	ephemeral: false,
+	trace: true,
 };

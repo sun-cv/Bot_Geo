@@ -5,8 +5,9 @@ module.exports = {
 	customId: 'help-commands-home',
 	deferUpdate: true,
 	cooldown: -1,
+	trace: true,
 
-	execute: async (interaction) => {
-		sendCommandsHome(interaction);
+	execute: async (interaction, log) => {
+		sendCommandsHome(interaction, log);
 	},
 };

@@ -1,13 +1,14 @@
 const { SlashCommandBuilder, AttachmentBuilder, CommandInteraction } = require('discord.js');
 const axios = require('axios');
 
-const { logUserCommand, commandLog } = require('../../../utils/index');
-
-let output;
-
 const DEBUG = false;
 
-async function moveCommand(interaction = new CommandInteraction()) {
+async function moveCommand(interaction = new CommandInteraction(), log) {
+
+	await log.initiateCommand({ name: 'move', category: 'utility' });
+
+	let output = '';
+
 	try {
 
 		if (DEBUG) console.log('Deferred reply to interaction.');
@@ -67,11 +68,7 @@ async function moveCommand(interaction = new CommandInteraction()) {
 			if (DEBUG) console.log(`Fetched ${messagesToMove.size} messages to move.`);
 		}
 		catch (error) {
-
-			await interaction.editReply({ content: 'There was an error trying to fetch messages. Please make sure the message IDs are correct.', ephemera: true });
-
-			commandLog.status = 'failed';
-			throw error;
+			log.errorHandling(error);
 		}
 
 		// Sort the messages by timestamp
@@ -130,39 +127,28 @@ async function moveCommand(interaction = new CommandInteraction()) {
 			// Logging
 			if (message.author.id !== lastAuthorIdLog) {
 				output += `${message.author.username}`;
-				commandLog.output += ` ${formattedTime}\n`;
+				output += ` ${formattedTime}\n`;
 				lastAuthorIdLog = message.author.id;
+				console.log('move output', message.author.username, output);
 			}
 			output += `${message.content}\n`;
 		}
 		if (DEBUG) console.log('Moved messages.');
 
-		// Edit the deferred reply
+
 		// Send the message and store it in a variable
 		const messageCount = sortedMessages.length;
 		const messageLink = `https://discord.com/channels/${interaction.guild.id}/${targetChannel.id}/${infoMessage.id}`;
 
 		await interaction.editReply({ content: `<@${interaction.user.id}> moved ${messageCount} ${messageWord} to ${messageLink}`, fetchReply: true });
-
-		commandLog.stats = 'success';
 		return;
 
 	}
 	catch (error) {
-
-		console.log('Error detected in move command');
-
-		// Logging
-		commandLog.status = 'failed';
-		commandLog.error = error;
-
-		throw error;
+		log.errorHandling(error);
 	}
 	finally {
-		// Logging
-		commandLog.category = 'Utility';
-		commandLog.output = output;
-		logUserCommand(interaction, commandLog);
+		log.finalizeCommand(output);
 	}
 }
 
@@ -192,8 +178,8 @@ module.exports = {
 				.setRequired(false)),
 	execute: moveCommand,
 	command: true,
-	deferReply: true,
+	defer: true,
 	moderator: true,
 	maintenance: false,
-	ephemeral: false,
+	ephemeral: true,
 };

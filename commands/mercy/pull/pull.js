@@ -1,121 +1,83 @@
 const { SlashCommandBuilder, CommandInteraction } = require('discord.js');
-const { logUserCommand, commandLog, updateAccountLastActive, addRoleToUser, getUserId, getUsername } = require('../../../utils/index');
+const { getUserId, sendFollowUpDelete } = require('../../../utils/index');
 const { getMercyLimit, getCurrentPulls, incrementUser } = require('./utils');
-const { identifierEmojis, initializeMercy, getUserAccounts, setUser } = require('../mercyIndex');
+const { identifierEmojis, initializeMercy, setUser, userAccountExists } = require('../mercyIndex');
 const { autocompleteUserAccounts } = require('../utils/functions/userAutoComplete');
 
 
-async function pullCommand(interaction = new CommandInteraction(), trace) {
+async function pullCommand(interaction = new CommandInteraction(), log) {
+
+	await log.initiateCommand({ name: 'pull', category: 'mercy tracker', role: 'Mercy' }); let output;
+
+	const userId = log.member.id;
+	const username = log.member.name;
+	const count = interaction.options.getInteger('count');
+	const shard = interaction.options.getString('shard');
 
 	try {
 
-		/**
-	 	*  Global constants
-	 	*/
-
-		const userId = getUserId(interaction);
-		const username = getUsername(interaction);
-		const count = interaction.options.getInteger('count');
-		const shard = interaction.options.getString('shard');
-
-		/**
-     	*  Initialize command
-     	*/
-
-		// Ensure Mercy tracker exists, if not - Add
+		// ensure Mercy tracker exists, if not - add
 		await initializeMercy(interaction);
 
-		/**
-     	*  Pull Command
-     	*/
-
-		// // Define account
-
-		// User account input
-		const accountInput = interaction.options.getString('account');
-		// Get known accounts
-		const userAccounts = await getUserAccounts(userId);
-		// default user account
-		let userAccount = userAccounts[0].account;
-
-		// Confirm account exists ;
-		if (userAccounts.some(user => user.account === accountInput)) {
-			userAccount = accountInput;
-		}
-		else if (accountInput !== null) {
-
-			interaction.followUp({ content: `${accountInput} was not found.\n\n Use /register list to confirm account details`, ephemeral: true });
-
-			commandLog.status = 'failed';
+		// ensure user account exists, if not - return
+		const userAccount = await userAccountExists(interaction, log);
+		if (!userAccount) {
+			await sendFollowUpDelete(interaction, 'account does not exist', true);
+			log.returnCommand('denied', 'account does not exist');
 			return;
 		}
 
-		// // Main Command logic
+		/**
+	 	*  main command logic
+	 	*/
 
-		// Get current pulls from the database
+		// get current pulls from the database
 		const currentPulls = await getCurrentPulls(userId, userAccount, shard);
 
-		// Calculate total pulls
+		// calculate total pulls
 		let totalPulls = currentPulls.count + count;
 
-		// Primal use mythical_count
+		// primal use mythical_count
 		if (shard === 'primal') {
 			totalPulls = currentPulls.mythical_count + count;
 		}
 
-		// Get mercy limit for the shard type
+		// get mercy limit for the shard type
 		const mercyLimit = await getMercyLimit(shard);
 
-		// Check if total pulls exceed mercy limit
+		// output
+		output = `<@${interaction.user.id}> pulled ${count} ${identifierEmojis[shard]}`;
+
+		// check if total pulls exceed mercy limit
 		if (totalPulls >= mercyLimit) {
-			// Calculate remainder and reset shard count
+			// calculate remainder and reset shard count
 			const excess = totalPulls - mercyLimit;
 			const cycles = Math.floor(totalPulls / mercyLimit);
-			// WRITE - Reset shard count
+
+			// reset shard count
 			await setUser(userId, userAccount, shard, 0);
-			// Notify user exceeded mercy limit
-			await interaction.editReply({ content: `<@${interaction.user.id}> pulled ${count} ${identifierEmojis[shard]}` });
 
-			setTimeout(() => { interaction.deleteReply(); }, 10000);
+			const followUp = `## **Congratulations ${username}!!** :tada:\n\nYou've pulled ${count} ${identifierEmojis[shard]}'s and surpassed the ${mercyLimit} shard threshold for a guaranteed pull by ${excess}${identifierEmojis[shard]}'s.\n\nYou've now pulled ${cycles > 1 ? `${cycles} ${shard === 'primal' ? 'mythicals' : 'legendaries'}` : `${shard === 'primal' ? 'a mythical' : 'a legendary' }`} ***or*** you may have entered an incorrect amount.\n\nyour mercy count has been reset to 0 `;
 
-			interaction.followUp({ content: `## **Congratulations ${username}!!** :tada:\n\nYou've pulled ${count} ${identifierEmojis[shard]}'s and surpassed the ${mercyLimit} shard threshold for a guaranteed pull by ${excess}${identifierEmojis[shard]}'s.\n\nYou've now pulled ${cycles > 1 ? `${cycles} ${shard === 'primal' ? 'mythicals' : 'legendaries'}` : `${shard === 'primal' ? 'a mythical' : 'a legendary' }`} ***or*** you may have entered an incorrect amount.\n\nyour mercy count has been reset to 0 `, ephemeral: true });
+			await sendFollowUpDelete(interaction, output, false, 10000);
+			await sendFollowUpDelete(interaction, followUp);
 
-			commandLog.status = 'failed';
+			log.returnCommand('failed', 'exceeded mercy');
 			return;
 		}
 		else {
-
-			// WRITE - If total pulls do not exceed mercy limit, proceed
+			// increment count
 			await incrementUser(userId, userAccount, shard, count);
 
-			await interaction.editReply({ content: `<@${interaction.user.id}> pulled ${count} ${identifierEmojis[shard]}` });
-
-			setTimeout(() => { interaction.deleteReply(); }, 10000);
-
-			// Update last active
-			updateAccountLastActive(userId, userAccount);
-			// Logging
-			commandLog.status = 'success';
+			await sendFollowUpDelete(interaction, output, false, 10000);
 			return;
 		}
 	}
 	catch (error) {
-
-		console.log('Error detected in Mercy - Pull command');
-
-		// Logging
-		commandLog.status = 'failed';
-		commandLog.error = error;
-
-		throw error;
+		log.errorHandling(error);
 	}
 	finally {
-		// Add mercy role to user
-		addRoleToUser(interaction, 'Mercy');
-		// Logging
-		commandLog.category = 'Mercy';
-		commandLog.output = 'none';
-		logUserCommand(interaction, commandLog, trace);
+		log.finalizeCommand();
 	}
 
 }
@@ -157,10 +119,11 @@ module.exports = {
 	},
 	execute: pullCommand,
 	command: true,
-	deferReply: true,
+	defer: true,
 	moderator: false,
 	maintenance: false,
 	ephemeral: false,
+	trace: true,
 
 
 };

@@ -3,25 +3,29 @@ const { Events, Collection } = require('discord.js');
 const { admin } = require('../config.json');
 const { logUserCommand, commandLog, interactionErrorHandling, newTimestamp, activateUpdateUser, buttonErrorHandling } = require('../utils/index');
 const { InteractionCooldownHandler, buttonCooldownHandler } = require('./utils/functions/cooldownHandlers/index');
-const { commandTrace, userCommandTrace } = require('./utils/objects/userCommandTrace');
+const { commandTrace, userCommandTrace } = require('../utils/logging/objects/userCommandTrace');
+const { Log } = require('../utils/logging/logging');
+
 
 // Collections
 const cooldownButtons = new Collection();
 const cooldownCommands = new Collection();
 
 const DEBUG = false;
-const tracing = false;
 
 module.exports = {
 	name: Events.InteractionCreate,
 	async execute(client, interaction) {
 
-		if (DEBUG) console.error('interaction started!', interaction.member.id);
+		const log = new Log();
 
-		const { message, member, channel, guild, commandName, customId } = interaction;
+		await log.initialize(interaction);
+
+		const { member, commandName, customId } = interaction;
 		const command = interaction.client.commands.get(commandName);
 
-		if (channel.type === 'DM') return interaction.reply({ content: 'Can\'t use commands here.', ephemeral: true });
+		let share;
+		if (interaction.options && interaction.options.getString('share') !== undefined) share = interaction.options.getString('share') === 'true';
 
 		/**
 		 * ----------------
@@ -31,12 +35,13 @@ module.exports = {
 
 		if (interaction.isAutocomplete()) {
 			try {
-				await interactionErrorHandling(command.autocomplete, interaction);
+				command.autocomplete(interaction);
 			}
 			catch (error) {
-				console.error(error);
+				console.error('error detected in isAutoComplete -', error);
 			}
 		}
+
 
 		/**
 		 * ----------------
@@ -48,8 +53,6 @@ module.exports = {
 
 			const button = client.buttons.get(customId);
 			if (!button) return;
-
-			const timestamp = await newTimestamp('hour');
 
 			const {
 				deferUpdate = false,
@@ -65,22 +68,23 @@ module.exports = {
 			if (!member.roles.cache.some(role => role.name === 'Moderator')) {
 				buttonCooldown = await buttonCooldownHandler(interaction, button, cooldownButtons);
 				if (buttonCooldown) {
-					console.log(`${timestamp}: ${member.user.username} was cooled out`);
+					console.log(`${log.time.hour}: ${member.user.username} was cooled out`);
 				}
 			}
 
 			const buttonName = 'btn-' + customId;
 
+			await log.initiateButton();
+
 			// Button handling
 			if (!buttonCooldown) {
 				try {
-					buttonErrorHandling(button.execute, interaction);
+					await buttonErrorHandling(button.execute, interaction, log);
 				}
 				catch (error) {
 					console.error(error);
 				}
 			}
-
 		}
 
 		/**
@@ -92,17 +96,17 @@ module.exports = {
 		if (interaction.isChatInputCommand()) {
 
 			const {
-				data = null,
-				deferReply = true,
+				defer = true,
 				moderator = false,
 				maintenance = false,
 				ephemeral = true,
-				cooldownCount = null,
+				trace = null,
 				subCommand = null,
+				cooldownCount = null,
 				subCooldownCount = null,
 			} = command;
 
-			const timestamp = await newTimestamp('hour');
+			const timestamp = newTimestamp('hour');
 
 			// Mod check
 			if (moderator) {
@@ -110,42 +114,30 @@ module.exports = {
 
 					interaction.reply({ content: 'You do not have permission to use this command.', ephemeral: true });
 
-					commandLog.status = 'denied';
-					commandLog.output = 'none';
-
-					await logUserCommand(interaction, commandLog);
-					await activateUpdateUser(interaction);
+					log.update('command', { status: 'denied', output: 'none' });
+					log.finalize();
 					return;
 				}
 			}
 
-			// Tracing command handling time
-			const trace = await commandTrace(member.user.id, commandName, timestamp);
-
 			// Defer logic
-			if (deferReply) {
-
-				const shareValue = interaction.options.getString('share');
-				const share = shareValue === 'true' ? true : false;
-
-				const context = userCommandTrace.get(trace);
+			if (defer) {
 				try {
 					if (ephemeral && !share) {
-						if (tracing) console.log(`${context.count} - ${context.time}: ${interaction.member.user.username} deferred ${commandName} - ephemeral`);
-						await interactionErrorHandling(interaction.deferReply.bind(interaction, { ephemeral: true }));
+						if (DEBUG) console.log(`${log.command.tracer.context.count} - ${log.command.tracer.context.time}: ${interaction.member.user.username} deferred ${commandName} - ephemeral`);
+						await interaction.deferReply({ ephemeral: true });
+
 					}
 					else {
-						if (tracing)console.log(`${context.count} - ${context.time}: ${interaction.member.user.username} deferred ${commandName}`);
-						await interactionErrorHandling(interaction.deferReply.bind(interaction));
+						if (DEBUG) console.log(`${log.command.tracer.context.count} - ${log.command.tracer.context.time}: ${interaction.member.user.username} deferred ${commandName}`);
+						await interaction.deferReply();
+
 					}
 				}
 				catch (error) {
 					console.log('Error detected in defer reply');
 				}
 			}
-
-			// ensure exists
-			await activateUpdateUser(interaction);
 
 			// Command Cooldowns
 			let interactionCooldown;
@@ -163,9 +155,10 @@ module.exports = {
 			if (!interactionCooldown) {
 				try {
 					if (interaction.isCommand()) {
-						await interactionErrorHandling(command.execute, interaction, trace);
+
+						command.execute(interaction, log);
 					}
-					else if (deferReply) {
+					else if (defer) {
 						interaction.editReply({ content: 'There was an error while executing this command!', ephemeral: true });
 					}
 					else {

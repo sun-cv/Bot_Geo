@@ -9,7 +9,7 @@ const backupDirs = [
 	backupDirC,
 ];
 // Function to delete backups older than 7 days
-function deleteWeeklyBackups() {
+function deleteWeeklyBackups(task) {
 	try {
 		// Get the current date
 		const currentDate = new Date();
@@ -38,8 +38,7 @@ function deleteWeeklyBackups() {
 		});
 	}
 	catch (error) {
-		console.log('Error detected in deleteWeeklyBackups:', error);
-		throw error;
+		task.errorHandling(error);
 	}
 }
 

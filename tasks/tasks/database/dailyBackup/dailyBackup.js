@@ -15,7 +15,7 @@ const backupDirs = [
 ];
 
 // Backup the database
-async function dailyBackup() {
+async function dailyBackup(task) {
 	try {
 		await createBackupDirectories (backupDirs);
 
@@ -33,8 +33,7 @@ async function dailyBackup() {
 
 	}
 	catch (error) {
-		console.error('Error detected in dailyBackup:', error.message);
-		throw error;
+		task.errorHandling(error);
 	}
 }
 

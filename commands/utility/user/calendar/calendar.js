@@ -1,49 +1,32 @@
 const { CommandInteraction, SlashCommandBuilder } = require('discord.js');
-const { logUserCommand, commandLog, updateAccountLastActive, getUserId } = require('../../../../utils');
 
+async function plariumCalendar(interaction = new CommandInteraction, log) {
 
-async function plariumCalendar(interaction = new CommandInteraction, trace) {
+	await log.initiateCommand({ name: 'calendar', category: 'utility' });
 
-	const userId = getUserId(interaction);
-
-	const month = '3';
-	const day = '24';
+	const month = '4';
+	const day = '8';
 
 	const lastUpdate = `${month}/${day}`;
 	const lastScreenshot = `${month}-${day}`;
 
-	let shareCalendar = false;
-
-	const shareInputValue = interaction.options.getString('share');
-	if (shareInputValue === 'true') { shareCalendar = true; }
+	const shareCalendar = interaction.options.getString('share') === 'true';
 
 	const filePath = `D:/Projects/Bot_Geo/commands/utility/user/calendar/calendarScreenshots/${lastScreenshot}.png`;
+
 	try {
 
 		interaction.editReply({ content: `last updated on: ${lastUpdate}\n\n Ping <@271841393725407242> if out of date`, files: [{ attachment: filePath, name: 'latestCalendar.png' }], ephemeral: !shareCalendar });
 
 		if (shareCalendar) setTimeout(() => { interaction.deleteReply(); }, 1000 * 60 * 5);
 
-		// Update last active
-		updateAccountLastActive(userId);
-		// Logging
-		commandLog.output = 'none';
-		commandLog.status = 'success';
-		return;
-
 	}
-	catch (error) {
-		console.log('Error detected in Utility - Calendar command');
 
-		// Logging
-		commandLog.status = 'failed';
-		commandLog.error = error;
+	catch (error) {
+		log.errorHandling(error);
 	}
 	finally {
-		// Logging
-		commandLog.category = 'Utility';
-		commandLog.output = 'none';
-		logUserCommand(interaction, commandLog, trace);
+		log.finalizeCommand();
 	}
 }
 
@@ -61,11 +44,12 @@ module.exports = {
 
 	execute: plariumCalendar,
 	command: true,
-	deferReply: true,
+	defer: true,
 	moderator: false,
 	maintenance: false,
 	ephemeral: true,
 	cooldownCount: 120,
 	subCommand: 'shareCalendar',
 	subCooldownCount: 300,
+	trace: true,
 };

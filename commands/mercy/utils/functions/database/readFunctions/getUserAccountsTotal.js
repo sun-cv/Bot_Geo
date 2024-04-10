@@ -5,7 +5,7 @@ const { db } = require('../../../../../../database/utils/databaseIndex');
 async function getUserAccountsTotal(userId) {
 	try {
 
-		const userAccountTotal = await db.get('SELECT accounts FROM user WHERE user_id = ?', userId);
+		const userAccountTotal = await db.get('SELECT accounts FROM member WHERE user_id = ?', userId);
 
 		return userAccountTotal;
 	}

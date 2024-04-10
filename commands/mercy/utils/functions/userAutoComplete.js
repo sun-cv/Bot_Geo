@@ -58,6 +58,7 @@ async function updateAutoCompleteUserAccounts() {
 				freshAccounts.has(account),
 			);
 		}
+
 	}
 	catch (error) {
 		console.log('Error detected in updateAutoCompleteUserAccounts:', error);

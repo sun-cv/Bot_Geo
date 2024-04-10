@@ -4,12 +4,13 @@ const path = require('path');
 const backupDirD = 'D:/Projects/Bot_Geo/database/backup/day';
 const backupDirC = 'C:/Projects/backup/day';
 
+
 const backupDirs = [
 	backupDirD,
 	backupDirC,
 ];
 // Function to delete backups older than 7 days
-function deleteDailyBackups() {
+function deleteDailyBackups(task) {
 	try {
 		// Get the current date
 		const currentDate = new Date();
@@ -38,12 +39,12 @@ function deleteDailyBackups() {
 		});
 	}
 	catch (error) {
-		console.log('Error detected in deleteDailyBackups:', error);
-		throw error;
+		task.errorHandling(error);
 	}
 }
 
 
+// Schedule the deletion to run every 24 hours
 module.exports = {
 	deleteDailyBackups,
 	task: true };

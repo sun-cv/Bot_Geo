@@ -5,8 +5,9 @@ module.exports = {
 	customId: 'help-contact',
 	deferUpdate: true,
 	cooldown: -1,
+	trace: true,
 
-	execute: async (interaction) => {
-		sendHelpContactus(interaction);
+	execute: async (interaction, log) => {
+		sendHelpContactus(interaction, log);
 	},
 };

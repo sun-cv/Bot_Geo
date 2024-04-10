@@ -5,8 +5,9 @@ module.exports = {
 	customId: 'help-mercy-home',
 	deferUpdate: true,
 	cooldown: -1,
+	trace: true,
 
-	execute: async (interaction) => {
-		sendMercyHome(interaction);
+	execute: async (interaction, log) => {
+		sendMercyHome(interaction, log);
 	},
 };

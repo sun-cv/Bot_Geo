@@ -26,7 +26,7 @@ module.exports = {
 
 	execute: botHelp,
 	command: true,
-	deferReply: true,
+	defer: true,
 	moderator: false,
 	maintenance: false,
 	ephemeral: true,

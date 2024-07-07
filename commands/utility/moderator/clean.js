@@ -2,7 +2,7 @@ const { SlashCommandBuilder, CommandInteraction } = require('discord.js');
 
 async function cleanCommand(interaction = new CommandInteraction(), log) {
 
-	log.initiateCommand({ name: 'clean', category: 'utility' });
+	await log.initiateCommand({ name: 'clean', category: 'utility' });
 
 	try {
 
@@ -41,7 +41,7 @@ module.exports = {
 				.setMaxValue(100)),
 	execute: cleanCommand,
 	command: true,
-	deferReply: true,
+	defer: true,
 	moderator: true,
 	maintenance: false,
 	ephemeral: true,

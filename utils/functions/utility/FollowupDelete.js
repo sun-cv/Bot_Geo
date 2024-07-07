@@ -1,4 +1,4 @@
-async function sendFollowUpDelete(interaction, content, ephemeral = true, time) {
+async function sendFollowUpDelete(interaction, content, ephemeral = true, time = 30000) {
 
 	try {
 

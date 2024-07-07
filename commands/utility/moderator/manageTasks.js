@@ -22,8 +22,6 @@ async function manageTasks(interaction = new CommandInteraction(), log) {
 
 	let taskOutput = '';
 
-
-
 	try {
 		switch (functionType) {
 		case 'check': {
@@ -85,7 +83,7 @@ async function manageTasks(interaction = new CommandInteraction(), log) {
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('tasks')
+		.setName('manage-tasks')
 		.setDescription('manage tasks.')
 		.addStringOption(option =>
 			option.setName('queue')

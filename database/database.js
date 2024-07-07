@@ -23,17 +23,17 @@ db.all = util.promisify(db.all);
 async function createDatabase() {
 
 	await db.run(`CREATE TABLE IF NOT EXISTS member (
-	guild_id TEXT, 
-	user_id TEXT PRIMARY KEY,
-	username TEXT NOT NULL,
-	accounts INTEGER DEFAULT 0,
-	last_command TEXT,
-	command_count INTEGER DEFAULT 0,
-	button_count INTEGER DEFAULT 0,
-	message_count INTEGER DEFAULT 0,
-	error_count INTEGER DEFAULT 0,
-	last_active TEXT,
-	registration_date TEXT
+		guild_id TEXT, 
+		user_id TEXT PRIMARY KEY,
+		username TEXT NOT NULL,
+		accounts INTEGER DEFAULT 0,
+		last_command TEXT,
+		command_count INTEGER DEFAULT 0,
+		button_count INTEGER DEFAULT 0,
+		message_count INTEGER DEFAULT 0,
+		error_count INTEGER DEFAULT 0,
+		last_active TEXT,
+		registration_date TEXT
 )`, (error) => {
 		if (error) {
 			console.error(error.message);
@@ -59,18 +59,18 @@ async function createDatabase() {
  	*/
 
 	await db.run(`CREATE TABLE IF NOT EXISTS command_log (
-	guild_id TEXT NOT NULL,
-	channel_id TEXT NOT NULL,
-	user_id TEXT NOT NULL,
-	username TEXT NOT NULL,
-	category TEXT,
-	command TEXT,
-	output TEXT DEFAULT none,
-	status TEXT DEFAULT pending,
-	error TEXT DEFAULT none,
-	response_time TEXT,
-	time TEXT,
-	timestamp TEXT NOT NULL
+		guild_id TEXT NOT NULL,
+		channel_id TEXT NOT NULL,
+		user_id TEXT NOT NULL,
+		username TEXT NOT NULL,
+		category TEXT,
+		command TEXT,
+		output TEXT DEFAULT none,
+		status TEXT DEFAULT pending,
+		error TEXT DEFAULT none,
+		response_time TEXT,
+		time TEXT,
+		timestamp TEXT NOT NULL
 )`, (error) => {
 		if (error) {
 			console.error(error.message);
@@ -78,35 +78,51 @@ async function createDatabase() {
 	});
 
 	/**
- 	* MERCY ACCOUNTS
+ 	* MERCY TRACKER V2.0
  	*/
 
-	await db.run(`CREATE TABLE IF NOT EXISTS mercy_accounts (
-	user_id TEXT NOT NULL,
-	username TEXT NOT NULL,
-	account TEXT,
-	last_active TEXT,
-	registration_date TEXT,
-	PRIMARY KEY(user_id, username, account)
-)`, (error) => {
+	await db.run(`CREATE TABLE IF NOT EXISTS mercy_tracker_accounts (
+		id TEXT NOT NULL,
+		member TEXT NOT NULL,
+		name TEXT NOT NULL,
+		main TEXT NOT NULL,
+		data TEXT,
+		template TEXT,
+		lastActive TEXT,
+		registered TEXT
+	)`, (error) => {
 		if (error) {
 			console.error(error.message);
 		}
 	});
-	/**
- 	* MERCY TRACKER
- 	*/
 
-	await db.run(`CREATE TABLE IF NOT EXISTS mercy_tracker (
-	user_id TEXT NOT NULL,
-	username TEXT NOT NULL,
-	account TEXT NOT NULL,
-	shard TEXT NOT NULL,
-	count INTEGER DEFAULT 0,
-	mythical_count INTEGER DEFAULT 0,
-	legendary_count INTEGER DEFAULT 0,
-	PRIMARY KEY(user_id, account, shard)
-  )`, (error) => {
+	await db.run(`CREATE TABLE IF NOT EXISTS mercy_tracker_data (
+		id TEXT NOT NULL,
+		member TEXT NOT NULL,
+		name TEXT NOT NULL,
+		shard TEXT NOT NULL,
+		count INTEGER DEFAULT 0,
+		totalCount INTEGER DEFAULT 0,
+		lastAdded INTEGER DEFAULT 0,
+		lastPulled TEXT,
+		lastReset TEXT
+	)`, (error) => {
+		if (error) {
+			console.error(error.message);
+		}
+	});
+
+	await db.run(`CREATE TABLE IF NOT EXISTS mercy_tracker_champions (
+		id TEXT NOT NULL,
+		member TEXT NOT NULL,
+		name TEXT NOT NULL,
+		shard TEXT NOT NULL,
+		champion TEXT NOT NULL,
+		lastCount TEXT NOT NULL,
+		monthDay TEXT NOT NULL,
+		timestamp TEXT NOT NULL
+
+	)`, (error) => {
 		if (error) {
 			console.error(error.message);
 		}

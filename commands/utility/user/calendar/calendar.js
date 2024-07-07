@@ -4,8 +4,8 @@ async function plariumCalendar(interaction = new CommandInteraction, log) {
 
 	await log.initiateCommand({ name: 'calendar', category: 'utility' });
 
-	const month = '4';
-	const day = '8';
+	const month = '7';
+	const day = '4';
 
 	const lastUpdate = `${month}/${day}`;
 	const lastScreenshot = `${month}-${day}`;
@@ -15,6 +15,7 @@ async function plariumCalendar(interaction = new CommandInteraction, log) {
 	const filePath = `D:/Projects/Bot_Geo/commands/utility/user/calendar/calendarScreenshots/${lastScreenshot}.png`;
 
 	try {
+
 
 		interaction.editReply({ content: `last updated on: ${lastUpdate}\n\n Ping <@271841393725407242> if out of date`, files: [{ attachment: filePath, name: 'latestCalendar.png' }], ephemeral: !shareCalendar });
 

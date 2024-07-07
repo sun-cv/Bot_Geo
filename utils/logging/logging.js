@@ -108,7 +108,7 @@ class Log {
 		this.time = {
 			hour: newTimestamp('hour'),
 			date: newTimestamp('date'),
-			stamp: newTimestamp('day'),
+			stamp: newTimestamp(),
 			iso: newTimestamp('iso'),
 			unix: newTimestamp('unix'),
 		},

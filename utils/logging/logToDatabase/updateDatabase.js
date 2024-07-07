@@ -2,49 +2,54 @@ const { db } = require('../../../database/database');
 
 async function updateDatabase() {
 
-	const { member, command, button, message, error } = this;
+	const { member, command, button, message, time, error } = this;
 
-	let table;
-	const fields = [];
-	const values = [];
+	const queries = [];
 
 	if (member.isMember) {
 
-		table = 'member';
-		fields.push('last_active = ?');
-		values.push(member.lastActive);
+		queries.push({
+			table: 'member',
+			fields: ['last_active = ?'],
+			values: [member.lastActive],
+		});
 
 		if (command.isCommand) {
-			fields.push('last_Command = ?, command_count = command_count + 1');
-			values.push(command.parameters);
+			queries[0].fields.push('last_Command = ?, command_count = command_count + 1');
+			queries[0].values.push(command.parameters);
 		}
 		if (button.isButton) {
-			fields.push('button_count = button_count + 1');
+			queries[0].fields.push('button_count = button_count + 1');
 		}
 		if (message.isMessage) {
-			fields.push('message_count = message_count + 1');
+			queries[0].fields.push('message_count = message_count + 1');
 		}
 		if (error.isError) {
-			fields.push('error_count = error_count + 1');
+			queries[0].fields.push('error_count = error_count + 1');
 		}
 	}
 
+	if (command.category === 'mercy tracker') {
 
-	if (!table) {
-		console.log('updateDatabase: table is undefined');
-		return;
+		queries.push({
+			table: 'mercy_accounts',
+			fields: ['last_active = ?'],
+			values: [time.iso],
+		});
 	}
-	const query = `UPDATE ${table} SET ${fields.join(', ')} WHERE user_id = ?`;
 
+	for (const queryInfo of queries) {
 
-	try {
-		db.run(query, [...values, member.id]);
-	}
-	catch {
-		console.log('error detected in class Log: updateDatabase', error);
+		const query = `UPDATE ${queryInfo.table} SET ${queryInfo.fields.join(', ')} WHERE user_id = ?`;
+
+		try {
+			await db.run(query, [...queryInfo.values, member.id]);
+		}
+		catch (err) {
+			console.log('error detected in class Log: updateDatabase', err);
+		}
 	}
 }
-
 
 module.exports = {
 	updateDatabase,

@@ -5,7 +5,7 @@ const { newTimestamp } = require('../../../../utils');
 
 async function setupTasks(task) {
 
-	task.scheduledAt = newTimestamp('day');
+	task.scheduledAt = newTimestamp();
 	task.nextExecution = nextExecutionTime(task.schedule);
 
 	await task.initiate();

@@ -7,11 +7,10 @@ class Task {
 		this.schedule = taskData.schedule;
 		this.arguments = taskData.arguments;
 		this.scheduledAt = null,
-		this.lastExecution = null,
+		this.lastExecution = taskData.last_execution,
 		this.nextExecution = null,
 		this.startTime = null,
-		this.failedAt = null,
-		this.responseTime = null,
+		this.responseTime = taskData.response_time,
 		this.description = taskData.description;
 		this.filepath = taskData.filepath || null;
 		this.updatedAt = taskData.updated_at;
@@ -26,7 +25,6 @@ class Task {
 		await this.log.initiateTask(this, ...args);
 	}
 
-	
 	async update(...args) {
 		this.log.updateTask(this, ...args);
 	}

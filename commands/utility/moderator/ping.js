@@ -2,7 +2,7 @@ const { SlashCommandBuilder, CommandInteraction } = require('discord.js');
 
 async function pingCommand(interaction = new CommandInteraction(), log) {
 
-	log.initiateCommand({ name: 'ping', category: 'utility' });
+	await log.initiateCommand({ name: 'ping', category: 'utility' });
 
 	try {
 
@@ -18,7 +18,7 @@ async function pingCommand(interaction = new CommandInteraction(), log) {
 
 		// Check if the specified role exists
 		const pingedRole = interaction.options.getRole('role');
-		const validRoleNames = ['CPR1', 'UltimateSunKnights', 'Cold Red Sun', 'Deep Dwarf Squats', 'CPR5', 'test'];
+		const validRoleNames = ['Red Wardens', 'UltimateSunKnights', 'Cold Red Sun', 'Deep Dwarf Squats', 'CPR5', 'test'];
 		const isValidRole = validRoleNames.includes(pingedRole.name);
 
 		// Output
@@ -26,7 +26,9 @@ async function pingCommand(interaction = new CommandInteraction(), log) {
 
 		if (hasRequiredRole && isCorrectCategory && isValidRole) {
 
-			interaction.editReply({ content: `${pingedRole} ${message}`, allowedMentions: { roles: [pingedRole.id] }, fetchReply: true });
+			const blankMessage = await interaction.editReply('⠀');
+			blankMessage.delete();
+			await interaction.followUp({ content: `${pingedRole} ${message}`, allowedMentions: { roles: [pingedRole.id] }, fetchReply: true });
 			return;
 		}
 		else {
@@ -71,7 +73,7 @@ module.exports = {
 				.setRequired(true)),
 	execute: pingCommand,
 	command: true,
-	deferReply: true,
+	defer: true,
 	moderator: false,
 	maintenance: false,
 	ephemeral: false,

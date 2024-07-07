@@ -181,5 +181,6 @@ module.exports = {
 	defer: true,
 	moderator: true,
 	maintenance: false,
-	ephemeral: true,
+	ephemeral: false,
+	trace: true,
 };

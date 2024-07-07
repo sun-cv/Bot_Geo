@@ -1,13 +1,10 @@
 const { SlashCommandBuilder, CommandInteraction } = require('discord.js');
 const fs = require('fs').promises;
 const { db } = require('../../../database/utils/databaseIndex');
-const { logUserCommand, commandLog } = require('../../../utils/index');
 
+async function throwErrorCommand(interaction = new CommandInteraction(), log) {
 
-const DEBUG = false;
-
-async function throwErrorCommand(interaction = new CommandInteraction()) {
-
+	await log.initiateCommand({ name: 'throwError', category: 'utility' });
 	// Get user input
 	const errorType = interaction.options.getString('type');
 
@@ -38,23 +35,12 @@ async function throwErrorCommand(interaction = new CommandInteraction()) {
 			throw new Error('This is a generic Error');
 		}
 	}
+
 	catch (error) {
-
-		await interaction.editReply(`Threw a ${errorType}. Check the logs to see if it was handled correctly.`);
-
-		// If debug log
-		if (DEBUG) {
-			console.error('Error details:', error);
-		}
-		commandLog.status = 'failed';
-		commandLog.error = error;
-		console.error('Error detected in throw error');
-		throw error;
+		log.errorHandling(error);
 	}
-
 	finally {
-		commandLog.category = 'Util';
-		logUserCommand(interaction, commandLog);
+		log.finalizeCommand();
 	}
 }
 
@@ -80,7 +66,7 @@ module.exports = {
 				)),
 	execute: throwErrorCommand,
 	command: true,
-	deferReply: true,
+	defer: true,
 	moderator: true,
 	maintenance: false,
 	ephemeral: true,

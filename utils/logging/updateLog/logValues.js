@@ -84,7 +84,7 @@ async function updateLogMember() {
 			this.member.id = this.interaction.discord.member.id;
 			this.member.name = this.interaction.discord.member.user.username;
 			this.member.roles = this.interaction.discord.member.roles.cache;
-			this.member.lastActive = newTimestamp('day');
+			this.member.lastActive = newTimestamp();
 			this.member.isMember = await existingMember.call(this, 'member');
 
 		}

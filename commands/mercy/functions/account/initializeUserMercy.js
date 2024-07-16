@@ -1,12 +1,12 @@
-const { guildId } = require('../../../../config.json');
+const { guildId, admin } = require('../../../../config.json');
 const { db } = require('../../../../database/database');
-const { newTimestamp } = require('../../../../utils');
-const { getAccount } = require('./getAccount');
 const { isMember } = require('./isMember');
+const { getAccount } = require('./getAccount');
 
 const { shardTypes } = require('../textMaps');
 const { loadMercyData } = require('./loadMercyData');
 const { loadChampionData } = require('./loadChampionData');
+const { newTimestamp } = require('../../../../Ιndex/utilities');
 
 
 async function initializeUserMercy(interaction) {
@@ -21,8 +21,8 @@ async function initializeUserMercy(interaction) {
 			const defaultAccount = true;
 			let data = {};
 			let template = {
-				type: 'fullArt',
-				selection: ['alure'],
+				type: 'minimal',
+				selection: ['ice'],
 				random: false,
 			};
 			const count = 0;
@@ -55,7 +55,7 @@ async function initializeUserMercy(interaction) {
 			const member = guild.members.cache.get(id);
 			member.roles.add(mercyRole);
 
-			interaction.followUp({ content:`Hey <@${id}>, thanks for trying out the mercy tracker!\n\n A default "main" account has been created for you. If you'd like to change its name (/account edit) or check the available mercy commands see the <#1197726332604383232> channel for more information.\n\nIf you have any questions, don't hesitate to reach out.\n ⎯ <@271841393725407242>`, ephemeral: true });
+			interaction.followUp({ content:`Hey <@${id}>, thanks for trying out the mercy tracker!\n\n A default "main" account has been created for you. If you'd like to change its name (/account edit) or check the available mercy commands see the <#1197726332604383232> channel for more information.\n\nIf you have any questions, don't hesitate to reach out.\n ⎯ <@${admin}>`, ephemeral: true });
 		}
 
 		const account = await getAccount(interaction);
@@ -63,6 +63,7 @@ async function initializeUserMercy(interaction) {
 
 		await loadMercyData(interaction, account);
 		await loadChampionData(interaction, account);
+
 		return account;
 	}
 	catch (error) {

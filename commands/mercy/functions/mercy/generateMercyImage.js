@@ -71,11 +71,7 @@ function getLastChampionData(account) {
 			}
 
 		}
-		lastChampionData.all.sort((a, b) => {
-			const dateA = new Date(a.timestamp);
-			const dateB = new Date(b.timestamp);
-			return dateB - dateA;
-		});
+		lastChampionData.all.sort((a, b) => b.timestamp - a.timestamp);
 
 		return lastChampionData;
 

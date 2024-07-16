@@ -1,4 +1,4 @@
-const { sendFollowUpDelete } = require('../../../../utils');
+const { sendFollowUpDelete } = require('../../../../Ιndex/utilities');
 const { initializeUserMercy } = require('../../functions/account/initializeUserMercy');
 const { mercyBackgroundOptions } = require('../options/mercyBackground');
 

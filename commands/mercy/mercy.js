@@ -2,11 +2,7 @@ const { SlashCommandBuilder, CommandInteraction } = require('discord.js');
 const { generateMercyImage } = require('./functions/mercy/generateMercyImage');
 const { initializeUserMercy } = require('./functions/account/initializeUserMercy');
 
-
-async function mercyCommand(interaction = new CommandInteraction(), log) {
-
-	await log.initiateCommand({ name: 'mercy', category: 'mercy tracker', role: 'Mercy' });
-
+async function mercyCommand(interaction = new CommandInteraction()) {
 	try {
 
 		const account = await initializeUserMercy(interaction);
@@ -15,15 +11,14 @@ async function mercyCommand(interaction = new CommandInteraction(), log) {
 		const image = await generateMercyImage(account);
 		if (!image) throw new Error('no image generated');
 
-		const share = interaction.options.getString('share');
+		const share = interaction.options.getString('share') === 'true';
 		interaction.editReply({ files: [{ attachment: image, name: 'mercy.png' }], ephemeral: share });
+
+		if (share) setTimeout(() => { interaction.deleteReply(); }, 1000 * 60 * 5);
 
 	}
 	catch (error) {
-		log.errorHandling(error);
-	}
-	finally {
-		log.finalizeCommand();
+		console.log(error);
 	}
 }
 
@@ -48,7 +43,7 @@ module.exports = {
 	maintenance: false,
 	ephemeral: true,
 	trace: true,
-	cooldownCount: 0,
+	cooldown: 0,
 	subCommand: 'shareMercy',
-	subCooldownCount: 120,
+	subCooldown: 120,
 };

@@ -1,6 +1,6 @@
 const { EmbedBuilder } = require('discord.js');
 const { shardTypes, shardNameLengths } = require('../textMaps');
-const { Embed } = require('../mercy/embed');
+const { Embed } = require('../../functions/account/embed');
 
 async function listChampions(interaction, account) {
 
@@ -21,7 +21,7 @@ async function listChampions(interaction, account) {
 			const shardData = shard.startsWith('primal.') && type ? account.mercy[primal][type] : account.mercy[shard];
 
 			shardData.lastChampion.forEach(champion => {
-				champions += `${Embed.truncate({ string: `${Embed.truncate({ string: `${champion.monthDay}`, limit: 8, pad: true, alignment: 'center' })}│${Embed.truncate({ string: ` ${champion.champion}`, limit: 36, pad: true })}│${Embed.truncate({ string: `${champion.lastCount}`, limit: 7, pad: true, alignment: 'right' })}`, limit: 54, pad: true, style: ['block_code'] })}`;
+				champions += `${Embed.truncate({ string: `${Embe .truncate({ string: `${champion.monthDay}`, limit: 8, pad: true, alignment: 'center' })}│${Embed.truncate({ string: ` ${champion.champion}`, limit: 36, pad: true })}│${Embed.truncate({ string: `${champion.lastCount}`, limit: 7, pad: true, alignment: 'right' })}`, limit: 54, pad: true, style: ['block_code'] })}`;
 			});
 			if (shardData.lastChampion.length > 0) {
 				output += `${Embed.truncate({ string: `  ${shardNameLengths[shard]}  `, limit: 54, pad: true, add: '-', alignment: 'center', style: ['block_code'] })}`;
@@ -52,4 +52,4 @@ async function listChampions(interaction, account) {
 
 module.exports = {
 	listChampions,
-}
+};

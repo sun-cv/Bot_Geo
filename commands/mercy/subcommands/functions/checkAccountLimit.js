@@ -1,4 +1,4 @@
-const { getMemberAccounts } = require('../../functions/account/getMemberAccounts');
+const { getMemberAccounts } = require("../../functions/account/getAccount");
 
 async function checkAccountLimit(interaction) {
 

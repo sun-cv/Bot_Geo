@@ -1,5 +1,5 @@
 const { db } = require('../../../../database/database');
-const { newTimestamp } = require('../../../../utils');
+const { newTimestamp } = require('../../../../Ιndex/utilities');
 const { getAccount } = require('../../functions/account/getAccount');
 const { shardTypes } = require('../../functions/textMaps');
 

@@ -1,42 +1,169 @@
-/* eslint-disable no-unused-vars */
 const { Events, Collection } = require('discord.js');
-const { admin } = require('../config.json');
-const { newTimestamp, buttonErrorHandling } = require('../utils/index');
-const { InteractionCooldownHandler, buttonCooldownHandler } = require('./utils/functions/cooldownHandlers/index');
-const { Log } = require('../utils/logging/logging');
-const { autocompleteUserAccounts } = require('../commands/mercy/functions/account/userAutoComplete');
-
-
-// Collections
-const cooldownButtons = new Collection();
-const cooldownCommands = new Collection();
-
-const DEBUG = false;
+const { autocompleteUserAccounts } = require('../commands/autocomplete/userAutoComplete');
+const { modCheck, adminCheck } = require('../utilities/functions/roles/modCheck');
+const { log } = require('../utilities/log/log');
 
 module.exports = {
 	name: Events.InteractionCreate,
 	async execute(client, interaction) {
+		try {
 
-		const log = new Log();
+			if (interaction.isAutocomplete()) {
+				await handleAutocomplete(interaction);
+				return;
+			}
 
-		await log.initialize(interaction);
+			await log.emitAwait('interaction', interaction);
 
-		const { member, commandName, customId } = interaction;
-		const command = interaction.client.commands.get(commandName);
+			if (interaction.isModalSubmit()) {
+				await handleModal(interaction);
+			}
+			if (interaction.isAnySelectMenu()) {
+				await handleMenu(interaction, client);
+			}
+			if (interaction.isButton()) {
+				await handleButton(interaction, client);
+			}
+			if (interaction.isChatInputCommand()) {
+				await handleCommand(interaction);
+			}
+			log.emit('interaction', interaction);
 
+		}
+		catch (error) {
+			console.log(error);
+		}
+	} };
 
-		let share;
-		if (interaction.options && interaction.options.getString('share') !== undefined) share = interaction.options.getString('share') === 'true';
+/**
+ * ----------------
+ * Autocomplete handler
+ * ----------------
+ */
 
-		/**
-		 * ----------------
-		 * Autocomplete
-		 * ----------------
-		 */
+async function handleAutocomplete(interaction) {
+	try {
 
-		if (interaction.isAutocomplete()) {
-			const optionName = interaction.options.getFocused().name;
+		const command = interaction.client.commands.get(interaction.commandName);
+		const autoCompleteCases = ['account'];
+		let completed;
 
+		autoCompleteCases.forEach(caseName => { completed = autocompleteCase(interaction, caseName); });
+
+		if (!completed)	command.autocomplete(interaction);
+
+	}
+	catch (error) {
+		console.log(error);
+	}
+}
+
+/**
+ * ----------------
+ * Modal Handler
+ * ----------------
+ */
+
+async function handleModal(interaction) {
+	interaction.deferUpdate();
+}
+
+/**
+ * ----------------
+ * Menu Handler
+ * ----------------
+ */
+
+async function handleMenu(interaction, client) {
+	try {
+
+		const menu = client.menus.get(interaction.customId);
+		const { defer = false } = menu;
+
+		if (defer) await interaction.deferUpdate();
+
+		menu.execute(interaction);
+	}
+	catch (error) {
+		console.log(error);
+	}
+}
+/**
+ * ----------------
+ * Button Handler
+ * ----------------
+ */
+
+async function handleButton(interaction, client) {
+	try {
+		const button = client.buttons.get(interaction.customId);
+		const member = interaction.member;
+
+		await interaction.deferUpdate();
+
+		if (!modCheck(member)) {
+			if (await cooldownHandler(interaction, button, 'button')) {
+				console.log(`${member.user.username} was cooled out`);
+				return;
+			}
+		}
+		await button.execute(interaction);
+	}
+	catch (error) {
+		console.log(error);
+	}
+}
+
+/**
+ * ----------------
+ * Command handler
+ * ----------------
+ */
+
+async function handleCommand(interaction) {
+	try {
+
+		const command = interaction.client.commands.get(interaction.commandName);
+		const { moderator = false, maintenance = false } = command;
+		const member = interaction.member;
+
+		if (maintenance && adminCheck(member)) return interaction.reply({ content: 'This command is disabled.', ephemeral: true });
+
+		if (moderator && !modCheck(member)) {
+			return interaction.reply({ content: 'You do not have permission to use this command.', ephemeral: true });
+		}
+
+		if (!moderator && await cooldownHandler(interaction, command, 'command')) {
+			console.log(`${member.user.username} was cooled out`);
+			return;
+		}
+
+		const share = interaction.options?.getString('share') === 'true' || command.ephemeral === false;
+		await interaction.deferReply({ ephemeral: !share });
+
+		if (interaction.isCommand()) {
+			await command.execute(interaction);
+		}
+		else {
+			interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+		}
+	}
+	catch (error) {
+		console.log(error);
+	}
+}
+
+/**
+ * ----------------
+ * Autocomplete case handler
+ * ----------------
+*/
+
+function autocompleteCase(interaction, input) {
+	try {
+
+		switch (input) {
+		case 'account':
 			if (interaction.options._hoistedOptions.some(option => option.name === 'account')) {
 				const userId = interaction.member.user.id;
 				const focusedValue = interaction.options.getFocused();
@@ -44,168 +171,77 @@ module.exports = {
 				const choices = autocompleteUserAccounts[userId] || [];
 				const filtered = choices.filter(choice => choice.toLowerCase().startsWith(focusedValue.toLowerCase()));
 
-				await interaction.respond(
+				interaction.respond(
 					filtered.map(choice => ({ name: choice, value: choice })),
 				);
-
-			}
-			else {
-				try {
-					command.autocomplete(interaction);
-				}
-				catch (error) {
-					console.error('error detected in isAutoComplete -', error);
-				}
+				return true;
 			}
 		}
 
-		/**
-		 * ----------------
-		 * Menu Handler
-		 * ----------------
-		 */
-		if (interaction.isAnySelectMenu()) {
-			const menu = client.menus.get(interaction.customId);
+	}
+	catch (error) {
+		console.log(error);
+	}
+}
 
-			const {
-				deferUpdate = false,
-				cooldown = -1,
-			} = menu;
+/**
+ * ----------------
+ * Cooldown handler
+ * ----------------
+ */
 
-			if (deferUpdate) {
-				await interaction.deferUpdate();
-			}
-			if (menu) {
-				menu.execute(interaction, log);
-			}
-		}
+const cooldowns = new Collection();
 
-		/**
-		 * ----------------
-		 * Button Handler
-		 * ----------------
-		 */
+async function cooldownHandler(interaction, item, type) {
+	try {
 
-		if (interaction.isButton()) {
+		const { member } = interaction;
+		const id = type === 'button' ? interaction.customId : interaction.commandName;
+		const {
+			deferUpdate = false,
+			defer = false,
+			cooldown = -1,
+			subCommand = null,
+			subCooldown = null,
+		} = item;
 
-			const button = client.buttons.get(customId);
-			if (!button) return;
+		let returnCooldown;
 
-			const {
-				deferUpdate = false,
-				cooldown = -1,
-			} = button;
+		const shareInput = interaction.options?.getString('share');
+		const share = shareInput === 'true';
 
-			if (deferUpdate) {
-				await interaction.deferUpdate();
-			}
+		const currentId = share ? subCommand : id;
+		const currentCooldown = share ? subCooldown : cooldown ;
 
-			// Button Cooldowns
-			let buttonCooldown;
-			if (!member.roles.cache.some(role => role.name === 'Moderator')) {
-				buttonCooldown = await buttonCooldownHandler(interaction, button, cooldownButtons);
-				if (buttonCooldown) {
-					console.log(`${log.time.hour}: ${member.user.username} was cooled out`);
+		const cooldownAmount = currentCooldown * 1000;
+		const cooldownTime = currentCooldown / 60;
+
+		const cooldownKey = `${currentId}-${member.id}`;
+
+		const timestamps = cooldowns.get(cooldownKey) || cooldowns.set(cooldownKey, new Collection()).get(cooldownKey);
+
+		const currentTime = Date.now();
+
+		if (timestamps.has(cooldownKey)) {
+			const expirationTime = timestamps.get(cooldownKey) + cooldownAmount;
+
+			if (currentTime < expirationTime) {
+				returnCooldown = true;
+				const timeLeft = (expirationTime - currentTime) / 1000;
+				if (defer || deferUpdate) {
+					return interaction.followUp({ content: `${cooldownKey} has a ${cooldownTime} minute cooldown. You must wait ${timeLeft.toFixed(0)} seconds`, ephemeral: true });
 				}
-			}
-
-			const buttonName = 'btn-' + customId;
-
-			await log.initiateButton();
-
-			// Button handling
-			if (!buttonCooldown) {
-				try {
-					await buttonErrorHandling(button.execute, interaction, log);
-				}
-				catch (error) {
-					console.error(error);
+				else {
+					return interaction.reply({ content: `${cooldownKey} has a ${cooldownTime} minute cooldown. You must wait ${timeLeft.toFixed(0)} seconds`, ephemeral: true });
 				}
 			}
 		}
+		timestamps.set(cooldownKey, currentTime);
+		setTimeout(() => timestamps.delete(member.id), cooldownAmount);
 
-		/**
-		 * ----------------
-		 * Command handling
-		 * ----------------
-		 */
-
-		if (interaction.isChatInputCommand()) {
-
-			const {
-				defer = true,
-				moderator = false,
-				maintenance = false,
-				ephemeral = true,
-				trace = null,
-				subCommand = null,
-				cooldownCount = null,
-				subCooldownCount = null,
-			} = command;
-
-			const timestamp = newTimestamp('hour');
-
-			// Mod check
-			if (moderator) {
-				if (!member.roles.cache.some(role => role.name === 'Moderator')) {
-
-					interaction.reply({ content: 'You do not have permission to use this command.', ephemeral: true });
-
-					log.update('command', { status: 'denied', output: 'none' });
-					log.finalize();
-					return;
-				}
-			}
-
-			// Defer logic
-			if (defer) {
-				try {
-					if (ephemeral && !share) {
-						if (DEBUG) console.log(`${log.command.tracer.context.count} - ${log.command.tracer.context.time}: ${interaction.member.user.username} deferred ${commandName} - ephemeral`);
-						await interaction.deferReply({ ephemeral: true });
-
-					}
-					else {
-						if (DEBUG) console.log(`${log.command.tracer.context.count} - ${log.command.tracer.context.time}: ${interaction.member.user.username} deferred ${commandName}`);
-						await interaction.deferReply();
-
-					}
-				}
-				catch (error) {
-					console.log('Error detected in defer reply');
-				}
-			}
-
-			// Command Cooldowns
-			let interactionCooldown;
-			if (!member.roles.cache.some(role => role.name === 'Moderator')) {
-				interactionCooldown = await InteractionCooldownHandler(interaction, cooldownCommands);
-				if (interactionCooldown) {
-					console.log(`${timestamp}: ${member.user.username} was cooled out`);
-				}
-			}
-
-			// Maintenance
-			if (maintenance && member.id !== admin) return interaction.reply({ content: 'This command is disabled.', ephemeral: true });
-
-			// Command handling
-			if (!interactionCooldown) {
-				try {
-					if (interaction.isCommand()) {
-
-						command.execute(interaction, log);
-					}
-					else if (defer) {
-						interaction.editReply({ content: 'There was an error while executing this command!', ephemeral: true });
-					}
-					else {
-						interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-					}
-				}
-				catch (error) {
-					console.error(error);
-				}
-			}
-		}
-	},
-};
+		return returnCooldown;
+	}
+	catch (error) {
+		console.log(error);
+	}
+}

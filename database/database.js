@@ -40,20 +40,6 @@ async function createDatabase() {
 		}
 	});
 
-	// Create an index on the user_id column
-	await db.run('CREATE INDEX IF NOT EXISTS idx_user_id ON member (user_id);', (error) => {
-		if (error) {
-			console.error(error.message);
-		}
-	});
-
-	// Add a unique constraint to the user_id column
-	await db.run('CREATE UNIQUE INDEX IF NOT EXISTS uq_user_id ON member (user_id);', (error) => {
-		if (error) {
-			console.error(error.message);
-		}
-	});
-
 	/**
  	* COMMAND LOG
  	*/
@@ -63,11 +49,9 @@ async function createDatabase() {
 		channel_id TEXT NOT NULL,
 		user_id TEXT NOT NULL,
 		username TEXT NOT NULL,
-		category TEXT,
 		command TEXT,
-		output TEXT DEFAULT none,
-		status TEXT DEFAULT pending,
-		error TEXT DEFAULT none,
+		output TEXT,
+		error TEXT,
 		response_time TEXT,
 		time TEXT,
 		timestamp TEXT NOT NULL
@@ -129,25 +113,112 @@ async function createDatabase() {
 	});
 
 	/**
+	 * CLAN MANAGER
+	 */
+
+
+	await db.run(`CREATE TABLE IF NOT EXISTS clan_manager_clans (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		name TEXT NOT NULL,
+		data TEXT,
+		admin TEXT,
+		recruiting TEXT,
+		member TEXT
+	)`, (error) => {
+		if (error) {
+			console.error(error.message);
+		}
+	});
+
+	await db.run(`CREATE TABLE IF NOT EXISTS clan_manager_members (
+		id TEXT NOT NULL,
+		name TEXT NOT NULL,
+		discord TEXT,
+		status TEXT, 
+		info TEXT,
+		admin TEXT,
+		record TEXT
+	)`, (error) => {
+		if (error) {
+			console.error(error.message);
+		}
+	});
+
+	await db.run(`CREATE TABLE IF NOT EXISTS clan_manager_accounts (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		memberId TEXT NOT NULL,
+		member TEXT NOT NULL,
+		name TEXT NOT NULL,
+		type TEXT,
+		info TEXT,
+		clan TEXT,
+		stats TEXT,
+		admin TEXT,
+		record TEXT
+	)`, (error) => {
+		if (error) {
+			console.error(error.message);
+		}
+	});
+
+	await db.run(`CREATE TABLE IF NOT EXISTS clan_manager_applications (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		memberId TEXT,
+		member TEXT,
+		account TEXT,
+		status TEXT DEFAULT pending,
+		type TEXT,
+		response TEXT,
+		clan TEXT,
+		info TEXT,
+		admin TEXT,
+		timestamp TEXT
+	)`, (error) => {
+		if (error) {
+			console.error(error.message);
+		}
+	});
+
+	await db.run(`CREATE TABLE IF NOT EXISTS clan_manager_reminders (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		type TEXT,
+		task_name TEXT,
+		description TEXT,
+		user_name TEXT,
+		user_id TEXT,
+		channel_id TEXT,
+		command TEXT,
+		arguments TEXT,
+		input TEXT,
+		cron TEXT,
+		cycle TEXT,
+		count TEXT,
+		scheduled_at TEXT,
+		last_execution TEXT,
+		next_execution TEXT,
+		response_time TEXT,
+		failed_at TEXT,
+		error TEXT,
+		updated_at TEXT,
+		created_at TEXT
+	)`, (error) => {
+		if (error) {
+			console.error(error.message);
+		}
+	});
+
+
+	/**
 	 * TASKS
 	 */
 
-	await db.run(`CREATE TABLE IF NOT EXISTS tasks (
-	id INTEGER PRIMARY KEY AUTOINCREMENT,
-	name TEXT,
-	schedule TEXT NOT NULL,
-	arguments TEXT,
-	scheduled_at TEXT,
-	last_execution TEXT,
-	next_execution TEXT,
-	failed TEXT,
-	response_time TEXT,
-	error TEXT,
-	description TEXT,
-	filepath TEXT,
-	updated_at TEXT,
-	created_at TEXT
-)`, (error) => {
+	await db.run(`CREATE TABLE IF NOT EXISTS tasks_system (
+		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		name TEXT,
+		arguments TEXT,
+		cron TEXT,
+		data TEXT
+	)`, (error) => {
 		if (error) {
 			console.error(error.message);
 		}
@@ -158,9 +229,9 @@ async function createDatabase() {
  	* Golden Kappa
  	*/
 
-	await db.run(`CREATE TABLE IF NOT EXISTS golden_kappa (
+	await db.run(`CREATE TABLE IF NOT EXISTS tasks_golden_kappa (
 	kappa INTEGER PRIMARY KEY AUTOINCREMENT,
-	user_id TEXT,
+	id TEXT,
 	username TEXT,
 	timestamp TEXT NOT NULL
 )`, (error) => {
@@ -169,89 +240,6 @@ async function createDatabase() {
 		}
 	});
 
-
-	/**
- 	*  ERROR LOG
- 	*/
-
-	await db.run(`CREATE TABLE IF NOT EXISTS error_log_command (
-		error_id INTEGER PRIMARY KEY AUTOINCREMENT,
-		guild_id,
-		channel_id TEXT,
-		user_id TEXT,
-		username TEXT,
-		command TEXT,
-		error_name TEXT,
-		error_message TEXT,
-		stack_trace TEXT,
-		interaction_args TEXT,
-		response_time TEXT,
-		time TEXT,
-		timestamp TEXT NOT NULL
-	)`, (error) => {
-		if (error) {
-			console.error(error.message);
-		}
-	});
-
-	await db.run(`CREATE TABLE IF NOT EXISTS error_log_button (
-		error_id INTEGER PRIMARY KEY AUTOINCREMENT,
-		guild_id,
-		channel_id TEXT,
-		user_id TEXT,
-		username TEXT,
-		custom_id TEXT,
-		error_name TEXT,
-		error_message TEXT,
-		stack_trace TEXT,
-		interaction_args TEXT,
-		response_time TEXT,
-		time TEXT,
-		timestamp TEXT NOT NULL
-	)`, (error) => {
-		if (error) {
-			console.error(error.message);
-		}
-	});
-
-	await db.run(`CREATE TABLE IF NOT EXISTS error_log_message (
-		error_id INTEGER PRIMARY KEY AUTOINCREMENT,
-		guild_id,
-		channel_id TEXT,
-		user_id TEXT,
-		username TEXT,
-		content TEXT,
-		error_name TEXT,
-		error_message TEXT,
-		stack_trace TEXT,
-		interaction_args TEXT,
-		response_time TEXT,
-		time TEXT,
-		timestamp TEXT NOT NULL
-	)`, (error) => {
-		if (error) {
-			console.error(error.message);
-		}
-	});
-
-
-	await db.run(`CREATE TABLE IF NOT EXISTS error_log_task (
-				error_id INTEGER PRIMARY KEY AUTOINCREMENT,
-				task TEXT,
-				scheduled_at TEXT,
-				next_execution TEXT,
-				failed_at TEXT,
-				error_name TEXT,
-				error_message TEXT,
-				stack_trace TEXT,
-				response_time TEXT,
-				time TEXT,
-				timestamp TEXT NOT NULL
-			)`, (error) => {
-		if (error) {
-			console.error(error.message);
-		}
-	});
 }
 
 createDatabase();

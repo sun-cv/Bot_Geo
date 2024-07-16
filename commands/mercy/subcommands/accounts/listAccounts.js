@@ -1,4 +1,4 @@
-const { getMemberAccounts } = require('../../functions/account/getMemberAccounts');
+const { getMemberAccounts } = require('../../functions/account/getAccount');
 const { initializeUserMercy } = require('../../functions/account/initializeUserMercy');
 
 async function listAccountsCommand(interaction) {
@@ -10,8 +10,6 @@ async function listAccountsCommand(interaction) {
 		accounts.sort((a, b) => (a.main === b.main) ? 0 : a.main ? -1 : 1);
 
 		let output = 'Your currently registered accounts are:\n\n';
-
-		console.log(accounts)
 
 		accounts.forEach(account => {
 			output += `${account.name}${account.main === true ? ' - default' : ''}\n`;

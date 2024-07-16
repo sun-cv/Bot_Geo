@@ -11,13 +11,14 @@ async function loadMercyData(interaction, account) {
 
 		for (const shard of shardTypes) {
 
+
 			const shardData = mercyData.find(data => data.shard === shard);
 			const condition = shardMercyConditions[shard];
 
 			if (shard.startsWith('primal.')) {
-
-				const [primal, type] = shard.split('.');
-
+				const primalSplit = shard.split('.');
+				const primal = primalSplit[0];
+				const type = primalSplit[1];
 				mercy[primal][type] = shardData;
 				mercy[primal][type].chance = `${(condition.base + Math.max(mercy[primal][type].count - condition.start, 0) * condition.increase).toFixed(1)}%`;
 			}
@@ -25,7 +26,6 @@ async function loadMercyData(interaction, account) {
 				mercy[shard] = shardData;
 				mercy[shard].chance = `${(condition.base + Math.max(mercy[shard].count - condition.start, 0) * condition.increase).toFixed(1)}%`;
 			}
-
 		}
 
 		account.mercy = mercy;

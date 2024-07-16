@@ -4,12 +4,10 @@ const { editAccountCommand } = require('./subcommands/accounts/editAccount');
 const { removeAccountCommand } = require('./subcommands/accounts/removeAccount');
 const { listAccountsCommand } = require('./subcommands/accounts/listAccounts');
 const { optionsAccountCommand } = require('./subcommands/accounts/optionsAccount');
-const { updateAutoCompleteUserAccounts, autocompleteUserAccounts } = require('./functions/account/userAutoComplete');
+const { updateAutoCompleteUserAccounts } = require('../autocomplete/userAutoComplete');
 
 
-async function accountCommand(interaction = new CommandInteraction(), log) {
-
-	await log.initiateCommand({ name: 'account', category: 'mercy tracker', role: 'Mercy' });
+async function accountCommand(interaction = new CommandInteraction()) {
 
 	try {
 
@@ -106,20 +104,11 @@ module.exports = {
 				.addBooleanOption(option =>
 					option.setName('background')
 						.setDescription('Select true to change your mercy background options')
-						.setRequired(false),
+						.setRequired(true),
 				)),
-	async autocomplete(interaction) {
-		const userId = interaction.member.user.id;
-		const focusedValue = interaction.options.getFocused();
-		const choices = autocompleteUserAccounts[userId];
-		const filtered = choices.filter(choice => choice.startsWith(focusedValue));
-		await interaction.respond(
-			filtered.map(choice => ({ name: choice, value: choice })),
-		);
-	},
 	execute: accountCommand,
 	command: true,
-	defer: true,
+	deferReply: true,
 	moderator: false,
 	maintenance: false,
 	ephemeral: true,

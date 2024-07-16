@@ -3,10 +3,7 @@ const { initializeUserMercy } = require('./functions/account/initializeUserMercy
 const { listChampions } = require('./functions/history/listChampions');
 
 
-async function historyCommand(interaction = new CommandInteraction(), log) {
-
-	await log.initiateCommand({ name: 'mercy', category: 'mercy tracker', role: 'Mercy' });
-
+async function historyCommand(interaction = new CommandInteraction()) {
 	try {
 
 		const account = await initializeUserMercy(interaction);
@@ -16,10 +13,7 @@ async function historyCommand(interaction = new CommandInteraction(), log) {
 
 	}
 	catch (error) {
-		log.errorHandling(error);
-	}
-	finally {
-		log.finalizeCommand();
+		console.log(error);
 	}
 }
 
@@ -29,7 +23,7 @@ module.exports = {
 		.setDescription('Check your mercy history')
 		.addStringOption(option =>
 			option.setName('shard')
-				.setDescription('Shard type to list')
+				.setDescription('Shard type to pull')
 				.setRequired(false)
 				.addChoices(
 					{ name: 'ancient', value: 'ancient' },
@@ -54,7 +48,7 @@ module.exports = {
 	maintenance: false,
 	ephemeral: true,
 	trace: true,
-	cooldownCount: 0,
+	cooldown: 0,
 	subCommand: 'shareMercy',
-	subCooldownCount: 120,
+	subCooldown: 120,
 };

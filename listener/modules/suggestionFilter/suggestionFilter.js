@@ -2,8 +2,7 @@
  * Toggle on off
  */
 
-const { delay } = require('../../../utils');
-const { getRandomEmoji } = require('../../../utils/functions/undesignated/getRandomEmoji');
+const { delay } = require('../../../Ιndex/utilities');
 
 const toggle = true;
 
@@ -95,3 +94,9 @@ module.exports = {
 	handleFilteredMessage,
 };
 
+function getRandomEmoji(emojis) {
+
+	const randomIndex = Math.floor(Math.random() * emojis.length);
+
+	return emojis[randomIndex];
+}

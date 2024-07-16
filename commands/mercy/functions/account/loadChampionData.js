@@ -24,11 +24,15 @@ async function loadChampionData(interaction, account) {
 
 			for (const champion of championData) {
 
+				champion.timestamp = new Date(champion.timestamp)
+
 				if (champion.shard === shard) {
 					lastChampion.push(champion);
 				}
 			}
-			lastChampion.sort((a, b) => a.timestamp - b.timestamp);
+
+			lastChampion.sort((a, b) => b.timestamp - a.timestamp);
+
 		}
 	}
 	catch (error) {
@@ -39,4 +43,4 @@ async function loadChampionData(interaction, account) {
 
 module.exports = {
 	loadChampionData,
-}
+};

@@ -3,13 +3,10 @@ const { initializeUserMercy } = require('./functions/account/initializeUserMercy
 const { createChampionLog } = require('./functions/reset/createChampionLog');
 const { resetShardCount } = require('./functions/reset/resetShardCount');
 const { shardEmojis } = require('./functions/textMaps');
-const { championListAutocomplete } = require('./functions/championAutocomplete');
+const { championListAutocomplete } = require('../autocomplete/championAutocomplete');
 
 
-async function resetMercyCommand(interaction = new CommandInteraction(), log) {
-
-	await log.initiateCommand({ name: 'pull', category: 'mercy tracker', role: 'Mercy' });
-
+async function resetMercyCommand(interaction = new CommandInteraction()) {
 	try {
 
 		const account = await initializeUserMercy(interaction);
@@ -24,10 +21,7 @@ async function resetMercyCommand(interaction = new CommandInteraction(), log) {
 
 	}
 	catch (error) {
-		log.errorHandling(error);
-	}
-	finally {
-		log.finalizeCommand();
+		console.log(error);
 	}
 }
 
@@ -51,6 +45,12 @@ module.exports = {
 				.setDescription('What champion did you pull?')
 				.setRequired(true)
 				.setAutocomplete(true))
+		.addIntegerOption(option =>
+			option.setName('count')
+				.setDescription('Add to count for tracking purposes')
+				.setRequired(false)
+				.setMinValue(0)
+				.setMaxValue(999))
 		.addStringOption(option =>
 			option.setName('account')
 				.setDescription('Alt account')

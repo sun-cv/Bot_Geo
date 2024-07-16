@@ -3,13 +3,10 @@ const { initializeUserMercy } = require('./functions/account/initializeUserMercy
 const { getMercyLimit } = require('./functions/mercy/getMercyLimit');
 const { setShardCount } = require('./functions/pull/setShardCount');
 const { shardEmojis } = require('./functions/textMaps');
-const { sendFollowUpDelete } = require('../../utils');
+const { sendFollowUpDelete } = require('../../Ιndex/utilities');
 
 
-async function pullCommand(interaction = new CommandInteraction(), log) {
-
-	await log.initiateCommand({ name: 'pull', category: 'mercy tracker' }); let output;
-
+async function pullCommand(interaction = new CommandInteraction()) {
 	try {
 
 		const account = await initializeUserMercy(interaction);
@@ -23,7 +20,7 @@ async function pullCommand(interaction = new CommandInteraction(), log) {
 
 		const mercyLimit = await getMercyLimit(shard);
 
-		output = `<@${interaction.user.id}> pulled ${count} ${shardEmojis[shard]}`;
+		let output = `<@${interaction.user.id}> pulled ${count} ${shardEmojis[shard]}`;
 
 		if (totalPulledCount >= mercyLimit) {
 
@@ -42,12 +39,8 @@ async function pullCommand(interaction = new CommandInteraction(), log) {
 		}
 	}
 	catch (error) {
-		log.errorHandling(error);
+		console.log(error);
 	}
-	finally {
-		log.finalizeCommand();
-	}
-
 }
 
 module.exports = {

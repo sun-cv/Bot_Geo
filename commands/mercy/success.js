@@ -1,20 +1,15 @@
 const { SlashCommandBuilder, CommandInteraction } = require('discord.js');
 const { initializeUserMercy } = require('./functions/account/initializeUserMercy');
-const { getAccount } = require('./functions/account/getAccount');
 const { loadMercyData } = require('./functions/account/loadMercyData');
 const { shardMercyConditions, shardEmojis } = require('./functions/textMaps');
-const { sendFollowUpDelete } = require('../../utils');
+const { sendFollowUpDelete } = require('../../Ιndex/utilities');
 
 
-async function successCommand(interaction = new CommandInteraction(), log) {
-
-	await log.initiateCommand({ name: 'success', category: 'mercy tracker', role: 'Mercy' }); let output;
+async function successCommand(interaction = new CommandInteraction()) {
 
 	try {
 
-		await initializeUserMercy(interaction);
-
-		const account = await getAccount(interaction);
+		const account = await initializeUserMercy(interaction);
 		if (!account) return;
 
 		await loadMercyData(interaction, account);
@@ -89,7 +84,7 @@ async function successCommand(interaction = new CommandInteraction(), log) {
 		const championType = (shard === 'primal.mythical') ? 'mythical champion' : 'legendary champions';
 		const shardName = (shard === 'primal.mythical' || shard === 'primal.legendary') ? 'primal' : shard;
 
-		output = `You've pulled ${initialCount} ${shardEmojis[shard]} shards to date <@${interaction.user.id}>.\n \nThe cumulative success chance of pulling a ${championType} from ${number} ${shardName} shards is approximately ${totalSuccessChancePercent.toFixed(2)}%.`;
+		const output = `You've pulled ${initialCount} ${shardEmojis[shard]} shards to date <@${interaction.user.id}>.\n \nThe cumulative success chance of pulling a ${championType} from ${number} ${shardName} shards is approximately ${totalSuccessChancePercent.toFixed(2)}%.`;
 
 		// Send the output
 		sendFollowUpDelete(interaction, output, !shareSuccess, 15000);
@@ -97,11 +92,9 @@ async function successCommand(interaction = new CommandInteraction(), log) {
 
 	}
 	catch (error) {
-		log.errorHandling(error);
+		console.log(error);
 	}
-	finally {
-		log.finalizeCommand(output);
-	}
+
 }
 
 module.exports = {
@@ -155,8 +148,8 @@ module.exports = {
 	moderator: false,
 	maintenance: false,
 	ephemeral: true,
-	cooldownCount: 0,
+	cooldown: 0,
 	subCommand: 'shareSuccess',
-	subCooldownCount: 120,
+	subCooldown: 120,
 	trace: true,
 };

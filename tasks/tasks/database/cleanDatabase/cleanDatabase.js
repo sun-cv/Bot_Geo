@@ -25,7 +25,9 @@ async function cleanDatabase() {
 
 async function cleanLogs(table) {
 	try {
-		await db.run(`DELETE FROM ${Object.keys(table)} WHERE datetime(${table.column}) < datetime(?)`, table.date);
+		const column = logTables[table].column;
+		const date = logTables[table].date;
+		await db.run(`DELETE FROM ${table} WHERE datetime(${column}) < datetime(?)`, date);
 	}
 	catch (error) {
 		console.log(error);
@@ -34,7 +36,7 @@ async function cleanLogs(table) {
 
 async function cleanMercy(table) {
 	try {
-		await db.run(`DELETE FROM mercy_tracker_${table} WHERE (id, name) IN (SELECT id, name FROM mercy_tracker_accounts WHERE last_active < ?)`, ninetyDays);
+		await db.run(`DELETE FROM mercy_tracker_${table} WHERE (id, name) IN (SELECT id, name FROM mercy_tracker_accounts WHERE lastActive < ?)`, ninetyDays);
 	}
 	catch (error) {
 		console.log(error);

@@ -13,36 +13,24 @@ class Log {
 		this.emitter = new EventEmitter();
 		this.events = new Map();
 
-		this.emitter.on('interaction', async (data) => { await this.handler(data, 'interaction'); });
-		this.emitter.on('task', async (task) => { await this.handler(task, 'task'); });
 	}
 
-	emit(type, data) {
-		this.emitter.emit(type, data);
-	}
-	emitAwait(type, data) {
-		return new Promise((resolve) => {
-			this.emitter.once(type, resolve);
-			this.emitter.emit(type, data);
-		});
-	}
-
-	async handler(data, type) {
-		await interactionHandler.call(this, data, type);
+	async event(data, type) {
+		await processEvent(this.events, data, type);
 	}
 
 }
 
-async function interactionHandler(data, type) {
+async function processEvent(events, data, type) {
 	try {
 
-		const event = await getEvent.call(this, data, type);
+		const event = await getEvent(events, data, type);
 		if (event.status === 'new' && type === 'interaction') return;
 
 		await event.tracer.endTime();
-		await logEvent.call(this, event);
-		await writeEvent.call(this, event, type);
-		await clearEvent.call(this, event, type);
+		await logEvent(events, event);
+		await writeEvent(event);
+		await clearEvent(events, event, type);
 	}
 	catch (error) {
 		console.log(error);
@@ -53,16 +41,16 @@ function getMember(interaction) {
 	return interaction.member.user.id;
 }
 
-async function getEvent(data, type) {
+async function getEvent(events, data, type) {
 
 	const key = type === 'task' ? data.name : getMember(data);
 
-	if (!this.events.has(key)) {
+	if (!events.has(key)) {
 		const newEvent = await createEvent(data, type);
-		this.events.set(key, newEvent);
+		events.set(key, newEvent);
 		return newEvent;
 	}
-	const event = this.events.get(key);
+	const event = events.get(key);
 	event.status = 'success';
 	return event;
 }
@@ -81,28 +69,36 @@ async function createEvent(data, type) {
 
 }
 
-function logEvent(event) {
+async function logEvent(events, event) {
+	try {
 
-	const { member, command, parameters, button, message, tracer, time, cron } = event;
+		const { member, command, parameters, button, menu, values, message, tracer, time, cron } = event;
 
-	if (command) {
-		console.log(`${time.hour} - ${tracer.responseTime}: ${member.username} used ${parameters}`);
-	}
-	if (button) {
-		console.log(`${time.hour} - ${tracer.responseTime}: ${member.username} is navigating ${button.customId} `);
-	}
-	if (message) {
-		console.log(`${time.hour}: ${member.name} ${message.filter} > ${message.content} `);
-	}
-	if (cron) {
-		if (event.run === false) {
-			console.log(`Running ${event.name}..`);
-			event.run = true;
-			return;
+		if (command) {
+			console.log(`${time.hour} - ${tracer.responseTime}: ${member.username} used ${parameters}`);
 		}
+		if (button) {
+			console.log(`${time.hour} - ${tracer.responseTime}: ${member.username} is navigating ${button.customId}`);
+		}
+		if (menu) {
+			console.log(`${time.hour} - ${tracer.responseTime}: ${member.username} selected ${values}`);
+		}
+		if (message) {
+			console.log(`${time.hour}: ${member.name} ${message.filter} > ${message.content} `);
+		}
+		if (cron) {
+			if (event.run === false) {
+				console.log(`Running ${event.name}..`);
+				event.run = true;
+				return;
+			}
 
-		console.log(`${time.hour}: ${event.name} was executed successfully in ${event.tracer.responseTime}. Next execution time: ${event.nextExecution}`);
-		event.run = false;
+			console.log(`${time.hour}: ${event.name} was executed successfully in ${event.tracer.responseTime}. Next execution time: ${event.nextExecution}`);
+			event.run = false;
+		}
+	}
+	catch (error) {
+		console.log(error);
 	}
 
 }
@@ -167,12 +163,12 @@ async function writeEvent(event) {
 	}
 }
 
-function clearEvent(event, type) {
+async function clearEvent(events, event, type) {
 
 	const key = type === 'task' ? event.name : getMember(event.interaction);
 
 	if (event.status === 'success') {
-		this.events.delete(key);
+		events.delete(key);
 	}
 }
 

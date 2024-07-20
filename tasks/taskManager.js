@@ -16,8 +16,7 @@ class Task {
 		this.loadTaskModule(data);
 	}
 
-	async loadTaskModule(data, newPath) {
-		const dirPath = newPath ? newPath : path.join(__dirname, '..', 'tasks');
+	async loadTaskModule(data, dirPath = path.join(__dirname, '..', 'tasks')) {
 		const items = fs.readdirSync(dirPath);
 		for (const item of items) {
 			const filePath = path.join(dirPath, item);
@@ -28,10 +27,8 @@ class Task {
 			}
 			else if (item.endsWith('.js')) {
 				const module = require(filePath);
-				for (const key in module) {
-					if (key === data.name) {
-						this.execute = module[key];
-					}
+				if (module[data.name]) {
+					this.execute = module[data.name];
 				}
 			}
 		}
@@ -43,10 +40,10 @@ class TaskManager {
 		this.tasks = [];
 		this.queue = [];
 		this.failed = [];
-		this.argument = {
+		this.arguments = {
 			client: client,
 		};
-		this.taskRunning;
+		this.running = { task: false };
 
 		this.loadTasks();
 	}
@@ -54,7 +51,7 @@ class TaskManager {
 	async loadTasks() {
 
 		await createTasks(this.tasks);
-		await scheduleTasks(this.tasks, this.queue, this.arguments, this.taskRunning);
+		await scheduleTasks(this.tasks, this.queue, this.arguments, this.running);
 
 	}
 
@@ -80,13 +77,12 @@ async function createTasks(tasks) {
 	}
 }
 
-async function scheduleTasks(tasks, queue, args, taskRunning) {
+async function scheduleTasks(tasks, queue, args, running) {
 	try {
-
 		for (const task of tasks) {
 			cron.schedule(task.cron, async () => {
 				queue.push(task);
-				await runNextTask(queue, args, taskRunning);
+				await runNextTask(queue, args, running);
 			});
 		}
 		console.log('Successfully scheduled tasks');
@@ -96,21 +92,25 @@ async function scheduleTasks(tasks, queue, args, taskRunning) {
 	}
 }
 
-async function runNextTask(queue, args, taskRunning) {
+async function runNextTask(queue, args, running) {
 	try {
 
-		if (taskRunning || queue.length === 0) return;
+		if (running.task || queue.length === 0) return;
 
-		taskRunning = true;
-
+		running.task = true;
 		const task = queue.shift();
-		await log.emitAwait('task', task);
-		(task.arguments === '') ? await task.execute() : await task.execute(args[task.arguments]);
-		log.emit('task', task);
-		taskRunning = false;
+
+		await log.event(task, 'task');
+
+		try {(task.arguments === '') ? await task.execute() : await task.execute(args[task.arguments]);	}
+		catch (error) { this.failed.push(task);	}
+
+		await log.event(task, 'task');
+
+		running.task = false;
 
 		if (queue.length > 0) {
-			runNextTask();
+			runNextTask(queue, args, running);
 		}
 	}
 	catch (error) {

@@ -1,7 +1,7 @@
 const { Client, Collection, GatewayIntentBits } = require('discord.js');
 const { token } = require('./config.json');
 const { newTimestamp } = require('./Ιndex/utilities');
-const { TaskManager, ClanApp } = require('./Ιndex/managers');
+const { TaskManager } = require('./Ιndex/managers');
 const { loadComponents, loadEvents } = require('./Ιndex/loaders');
 const { getAutoCompleteUserAccounts } = require('./commands/autocomplete/userAutoComplete');
 
@@ -34,6 +34,7 @@ const client = new Client({
 client.on('ready', () => {
 	client.taskManager = new TaskManager(client);
 	console.log('Successfully loaded Managers');
+	getAutoCompleteUserAccounts();
 });
 
 // Collections
@@ -46,7 +47,6 @@ loadComponents(client);
 loadEvents(client);
 
 // Autocomplete
-getAutoCompleteUserAccounts();
 
 client.login(token);
 

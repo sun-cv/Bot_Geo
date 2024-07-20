@@ -13,7 +13,7 @@ module.exports = {
 				return;
 			}
 
-			await log.emitAwait('interaction', interaction);
+			await log.event(interaction, 'interaction');
 
 			if (interaction.isModalSubmit()) {
 				await handleModal(interaction);
@@ -27,7 +27,7 @@ module.exports = {
 			if (interaction.isChatInputCommand()) {
 				await handleCommand(interaction);
 			}
-			log.emit('interaction', interaction);
+			await log.event(interaction, 'interaction');
 
 		}
 		catch (error) {
@@ -139,6 +139,7 @@ async function handleCommand(interaction) {
 		}
 
 		const share = interaction.options?.getString('share') === 'true' || command.ephemeral === false;
+
 		await interaction.deferReply({ ephemeral: !share });
 
 		if (interaction.isCommand()) {

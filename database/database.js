@@ -2,12 +2,12 @@ const sqlite3 = require('sqlite3').verbose();
 const util = require('util');
 
 
-// Connect to the SQLite database
 const db = new sqlite3.Database('./database/database.db', sqlite3.OPEN_READWRITE | sqlite3.OPEN_CREATE, (err) => {
 	if (err) {
 		console.error(err.message);
 	}
 	console.log('Geo Connected to the database.');
+
 });
 
 db.run = util.promisify(db.run);
@@ -246,5 +246,4 @@ createDatabase();
 
 module.exports = {
 	db,
-	createDatabase,
 };

@@ -56,7 +56,9 @@ class Menu extends Event {
 		this.interaction = interaction;
 		this.menu = interaction.client.menus.get(interaction.customId);
 		this.member = interaction.member.user;
+		this.values = interaction.values;
 		this.data = data;
+
 	}
 }
 

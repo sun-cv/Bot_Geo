@@ -1,6 +1,5 @@
 const { db } = require('../../../../database/database');
 const { newTimestamp } = require('../../../../Ιndex/utilities');
-const { shardEmojis } = require('../textMaps');
 
 
 async function resetShardCount(interaction, account) {
@@ -14,7 +13,6 @@ async function resetShardCount(interaction, account) {
 		const updateValues = [0, lastReset, account.id, account.name, shard];
 		await db.run(updateShard, updateValues);
 
-		await interaction.editReply(`You've successfully reset your ${shardEmojis[shard]} shards  - Congratulations on your pull!`);
 	}
 
 	catch (error) {
